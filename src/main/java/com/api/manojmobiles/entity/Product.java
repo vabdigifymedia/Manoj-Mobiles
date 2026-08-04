@@ -1,5 +1,6 @@
 package com.api.manojmobiles.entity;
 
+import com.api.manojmobiles.entity.enums.ProductStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -39,7 +40,7 @@ public class Product {
     @OneToOne(fetch = FetchType.LAZY)
     private Category category;
 
-    @OneToMany(mappedBy = "products")
+    @OneToMany(mappedBy = "product")
     private List<ProductVariant> variants;
 
     @Min(0)
@@ -50,7 +51,10 @@ public class Product {
 
     private Boolean isReturnable;
 
-    @NotBlank
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private ProductStatus status = ProductStatus.ACTIVE;
+
     @Column(unique = true)
     private String slug;
 
@@ -68,4 +72,17 @@ public class Product {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @PrePersist
+    @PreUpdate
+    public void autoGenerateSlug() {
+        if (this.name != null && (this.slug == null || this.slug.isBlank())) {
+            this.slug = this.name.toLowerCase()
+                    .trim()
+                    .replaceAll("[^a-z0-9\\s-]", "")
+                    .replaceAll("\\s+", "-")
+                    .replaceAll("-+", "-")
+                    .replaceAll("^-|-$", "");
+        }
+    }
 }

@@ -26,10 +26,22 @@ public class Brand {
     private String logo_url;
 
     @Column(unique = true)
-    @NotBlank
     private String slug;
 
     private String metaTitle;
     private String metaDescription;
     private String metaKeywords;
+
+    @PrePersist
+    @PreUpdate
+    public void autoGenerateSlug() {
+        if (this.name != null && (this.slug == null || this.slug.isBlank())) {
+            this.slug = this.name.toLowerCase()
+                    .trim()
+                    .replaceAll("[^a-z0-9\\s-]", "")
+                    .replaceAll("\\s+", "-")
+                    .replaceAll("-+", "-")
+                    .replaceAll("^-|-$", "");
+        }
+    }
 }

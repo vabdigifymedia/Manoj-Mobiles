@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: manojmobiles
+
+  # PostgreSQL Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/manojmobiles
+    username: postgres
+    password: Ankur@123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000ms
+
+  # Spring Cache Type
+  cache:
+    type: redis
+
+# JWT Configuration
+app:
+  jwt:
+    secret: b91778d8fc8ba7ece3cd0b71d29063d516cf0a1fa2850d084c5e827fafd79ddc
+    expiration-in-ms: 604800000
+
+  # Redis TTL & Rate Limiting Configuration
+  redis:
+    otp-ttl: 2m
+    refresh-token-ttl: 7d
+    password-reset-ttl: 10m
+    cache:
+      product-ttl: 1h
+      category-ttl: 6h
+    rate:
+      login-limit: 5
+      login-window: 10m
+      otp-limit: 3
+      otp-window: 10m
+      forgot-password-limit: 3
+      forgot-password-window: 1h
+
+  initial-admin:
+    name: Super Admin
+    email: admin@manojmobiles.com
+    password: Admin@123
+    phone: 9999999999
+
+
