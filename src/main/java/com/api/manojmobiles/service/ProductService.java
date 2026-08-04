@@ -115,7 +115,7 @@ public class ProductService {
         log.info("Cache EVICT for product:{} — removed after deletion", id);
     }
 
-    // ─── Mapping ──────────────────────────────────────────
+    // Mapping
 
     private ProductResponseDTO mapToResponseDTO(Product product) {
         return ProductResponseDTO.builder()

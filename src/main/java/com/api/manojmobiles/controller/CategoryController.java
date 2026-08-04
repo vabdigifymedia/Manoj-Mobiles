@@ -25,7 +25,7 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    // ─── Public (read) endpoints ──────────────────────────
+    // Public (read) endpoints
 
     @GetMapping("/api/public/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getRootCategories() {
@@ -51,7 +51,7 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.success("Category fetched successfully", category));
     }
 
-    // ─── Admin (write) endpoints ──────────────────────────
+    // Admin (write) endpoints
 
     @PostMapping("/api/categories")
     @PreAuthorize("hasRole('ADMIN')")

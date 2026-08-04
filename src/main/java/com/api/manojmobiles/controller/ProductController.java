@@ -22,7 +22,7 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // ─── Public (read) endpoints ──────────────────────────
+    // Public (read) endpoints
 
     @GetMapping("/api/public/products")
     public ResponseEntity<ApiResponse<List<ProductResponseDTO>>> getAllProducts() {
@@ -48,7 +48,7 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 
-    // ─── Admin (write) endpoints ──────────────────────────
+    // Admin (write) endpoints
 
     @DeleteMapping("/api/products/{id}")
     @PreAuthorize("hasRole('ADMIN')")

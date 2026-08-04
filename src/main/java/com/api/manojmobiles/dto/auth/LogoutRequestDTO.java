@@ -16,4 +16,7 @@ public class LogoutRequestDTO {
 
     @NotNull
     private UUID userId;
+
+    @NotNull
+    private String refreshToken;
 }

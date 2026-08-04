@@ -11,6 +11,8 @@ import com.api.manojmobiles.dto.auth.RefreshTokenRequestDTO;
 import com.api.manojmobiles.dto.auth.ResetPasswordRequestDTO;
 import com.api.manojmobiles.dto.auth.SendOtpRequestDTO;
 import com.api.manojmobiles.dto.auth.VerifyOtpRequestDTO;
+import com.api.manojmobiles.dto.auth.ChangePasswordRequestDTO;
+import com.api.manojmobiles.dto.auth.StaffLoginRequestDTO;
 import com.api.manojmobiles.service.AuthService;
 import com.api.manojmobiles.service.OtpService;
 import com.api.manojmobiles.service.RateLimiterService;
@@ -23,6 +25,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -60,7 +65,7 @@ public class AuthController {
     }
 
     @PostMapping("/staff/login")
-    public ResponseEntity<ApiResponse<AuthResponseDTO>> authenticateStaff(@Valid @RequestBody com.api.manojmobiles.dto.auth.StaffLoginRequestDTO loginRequest) {
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> authenticateStaff(@Valid @RequestBody StaffLoginRequestDTO loginRequest) {
         AuthResponseDTO response = authService.authenticateStaff(loginRequest);
         return ResponseEntity.ok(ApiResponse.success("Staff Login successful", response));
     }
@@ -71,7 +76,7 @@ public class AuthController {
         return new ResponseEntity<>(ApiResponse.success("User registered successfully", response), HttpStatus.CREATED);
     }
 
-    // ─── OTP Endpoints ──────────────────────────────────────
+    // OTP Endpoints
 
     @PostMapping("/send-otp")
     public ResponseEntity<ApiResponse<Void>> sendOtp(
@@ -95,7 +100,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("OTP verified successfully", null));
     }
 
-    // ─── Password Reset ─────────────────────────────────────
+    // Password Reset
 
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<String>> forgotPassword(
@@ -120,7 +125,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Password reset successfully", null));
     }
 
-    // ─── Refresh & Logout ───────────────────────────────────
+    // Refresh & Logout
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthResponseDTO>> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO request) {
@@ -130,7 +135,20 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequestDTO request) {
-        authService.logout(request.getUserId());
+        authService.logout(request.getUserId(), request.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @Valid @RequestBody ChangePasswordRequestDTO request,
+            Principal principal) {
+        
+        if (principal == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
+        }
+        
+        authService.changePassword(principal.getName(), request);
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
     }
 }

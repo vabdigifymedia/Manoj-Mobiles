@@ -12,14 +12,15 @@ import java.util.UUID;
 /**
  * Refresh token service backed by Redis.
  *
- * Key pattern: refresh:{userId} → stores the refresh token string
+ * Key pattern: refresh:{userId}:{token} → stores "active"
  * TTL: configurable via app.redis.refresh-token-ttl (default 7 days)
  *
  * Design decisions:
  * - Access token remains stateless (JWT only) — NOT stored in Redis
  * - Refresh token IS stored in Redis for server-side validation & revocation
- * - One refresh token per user (new login replaces old refresh token)
- * - Logout deletes the refresh token from Redis
+ * - MULTI-DEVICE SUPPORT: A user can have multiple active refresh tokens
+ * - Logout deletes the specific refresh token from Redis
+ * - Global Logout (e.g., password change) deletes all tokens for that user
  *
  * Security:
  * - Refresh token values are NEVER logged
@@ -44,12 +45,12 @@ public class RefreshTokenService {
      */
     public String createRefreshToken(UUID userId) {
         String token = UUID.randomUUID().toString();
-        String key = REFRESH_KEY_PREFIX + userId;
+        String key = REFRESH_KEY_PREFIX + userId + ":" + token;
 
         try {
             stringRedisTemplate.opsForValue().set(
                     key,
-                    token,
+                    "active",
                     redisProperties.getRefreshTokenTtl());
             log.info("Refresh token created for userId:{}", userId);
         } catch (Exception e) {
@@ -69,19 +70,14 @@ public class RefreshTokenService {
      *                             match
      */
     public void validateRefreshToken(UUID userId, String refreshToken) {
-        String key = REFRESH_KEY_PREFIX + userId;
+        String key = REFRESH_KEY_PREFIX + userId + ":" + refreshToken;
 
         try {
-            String storedToken = stringRedisTemplate.opsForValue().get(key);
+            String status = stringRedisTemplate.opsForValue().get(key);
 
-            if (storedToken == null) {
+            if (status == null) {
                 log.warn("Refresh token validation failed for userId:{} — token expired or not found", userId);
-                throw new BadRequestException("Refresh token has expired. Please log in again.");
-            }
-
-            if (!storedToken.equals(refreshToken)) {
-                log.warn("Refresh token validation failed for userId:{} — token mismatch", userId);
-                throw new BadRequestException("Invalid refresh token. Please log in again.");
+                throw new BadRequestException("Refresh token has expired or is invalid. Please log in again.");
             }
 
             log.debug("Refresh token validated successfully for userId:{}", userId);
@@ -95,23 +91,33 @@ public class RefreshTokenService {
     }
 
     /**
-     * Delete the refresh token for the given user (logout).
-     *
-     * @param userId the user's UUID
+     * Delete a specific refresh token (single device logout).
      */
-    public void deleteRefreshToken(UUID userId) {
-        String key = REFRESH_KEY_PREFIX + userId;
-
+    public void deleteRefreshToken(UUID userId, String refreshToken) {
+        String key = REFRESH_KEY_PREFIX + userId + ":" + refreshToken;
         try {
             Boolean deleted = stringRedisTemplate.delete(key);
             if (Boolean.TRUE.equals(deleted)) {
-                log.info("Refresh token deleted for userId:{} (logout)", userId);
-            } else {
-                log.debug("No refresh token found to delete for userId:{}", userId);
+                log.info("Specific refresh token deleted for userId:{} (logout)", userId);
             }
         } catch (Exception e) {
-            log.warn("Failed to delete refresh token from Redis for userId:{}. Error: {}", userId, e.getMessage());
-            // Don't throw — logout should succeed even if Redis is down
+            log.warn("Failed to delete specific refresh token for userId:{}. Error: {}", userId, e.getMessage());
+        }
+    }
+
+    /**
+     * Delete ALL refresh tokens for the given user (global logout / password change).
+     */
+    public void deleteAllRefreshTokens(UUID userId) {
+        String pattern = REFRESH_KEY_PREFIX + userId + ":*";
+        try {
+            var keys = stringRedisTemplate.keys(pattern);
+            if (keys != null && !keys.isEmpty()) {
+                stringRedisTemplate.delete(keys);
+                log.info("Deleted {} refresh tokens for userId:{} (global logout)", keys.size(), userId);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to delete all refresh tokens for userId:{}. Error: {}", userId, e.getMessage());
         }
     }
 }

@@ -140,7 +140,7 @@ public class CategoryService {
         log.info("Cache EVICT for category:{} — removed after deletion", id);
     }
 
-    // ─── Mapping ──────────────────────────────────────────
+    // Mapping
 
     private CategoryResponseDTO mapToResponseDTO(Category category) {
         return CategoryResponseDTO.builder()

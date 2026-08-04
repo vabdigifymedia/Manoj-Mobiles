@@ -5,6 +5,7 @@ import com.api.manojmobiles.dto.auth.CreateStaffRequestDTO;
 import com.api.manojmobiles.dto.auth.CustomerLoginRequestDTO;
 import com.api.manojmobiles.dto.auth.CustomerSignUpDTO;
 import com.api.manojmobiles.dto.auth.StaffLoginRequestDTO;
+import com.api.manojmobiles.dto.auth.ChangePasswordRequestDTO;
 import com.api.manojmobiles.entity.User;
 import com.api.manojmobiles.entity.enums.Role;
 import com.api.manojmobiles.entity.enums.UserStatus;
@@ -21,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -37,7 +39,7 @@ public class AuthService {
     private final PasswordResetService passwordResetService;
     private final PasswordEncoder passwordEncoder;
 
-    // ─── OTP ──────────────────────────────────────────────
+    // OTP
 
     /**
      * Send OTP to a phone number.
@@ -50,7 +52,7 @@ public class AuthService {
         otpService.generateOtp(phone);
     }
 
-    // ─── Customer Authentication ──────────────────────────
+    // Customer Authentication
 
     public AuthResponseDTO authenticateCustomer(CustomerLoginRequestDTO loginRequest) {
         // Real OTP verification via Redis
@@ -100,7 +102,7 @@ public class AuthService {
                 .build();
     }
 
-    // ─── Staff Authentication ─────────────────────────────
+    // Staff Authentication
 
     public AuthResponseDTO authenticateStaff(StaffLoginRequestDTO loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -137,7 +139,7 @@ public class AuthService {
                 .build();
     }
 
-    // ─── Admin: Create Staff / Delivery Agent ─────────────
+    // Admin: Create Staff / Delivery Agent
 
     public User createStaffUser(CreateStaffRequestDTO requestDTO) {
         if (requestDTO.getRole() == Role.CUSTOMER) {
@@ -166,7 +168,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    // ─── Refresh Token ────────────────────────────────────
+    // Refresh Token
 
     /**
      * Refresh the access token using a valid refresh token.
@@ -198,13 +200,13 @@ public class AuthService {
     }
 
     /**
-     * Logout: delete the refresh token from Redis.
+     * Logout: delete the specific refresh token from Redis (Single Device Logout).
      */
-    public void logout(UUID userId) {
-        refreshTokenService.deleteRefreshToken(userId);
+    public void logout(UUID userId, String refreshToken) {
+        refreshTokenService.deleteRefreshToken(userId, refreshToken);
     }
 
-    // ─── Password Reset ───────────────────────────────────
+    // Password Reset
 
     /**
      * Initiate forgot password flow.
@@ -221,5 +223,28 @@ public class AuthService {
      */
     public void resetPassword(String token, String newPassword) {
         passwordResetService.resetPassword(token, newPassword);
+    }
+
+    // Change Password (For Logged-in Staff)
+
+    @Transactional
+    public void changePassword(String identifier, ChangePasswordRequestDTO request) {
+        User user = userRepository.findByEmail(identifier)
+                .orElseGet(() -> userRepository.findByPhone(identifier)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+
+        if (user.getPasswordHash() == null) {
+            throw new BadRequestException("Customers cannot change password via this endpoint.");
+        }
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            throw new BadRequestException("Incorrect old password.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        // Security best practice: invalidate ALL existing refresh tokens on password change
+        refreshTokenService.deleteAllRefreshTokens(user.getId());
     }
 }

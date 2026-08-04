@@ -54,7 +54,7 @@ public class OtpService {
                     key,
                     otp,
                     redisProperties.getOtpTtl());
-            log.info("OTP generated for phone:{}", maskPhone(phone));
+            log.info("OTP generated for phone:{}. [DEV ONLY] OTP is: {}", maskPhone(phone), otp);
         } catch (Exception e) {
             log.error("Failed to store OTP in Redis for phone:{}. Error: {}", maskPhone(phone), e.getMessage());
             throw new RuntimeException("OTP service is temporarily unavailable. Please try again later.");
