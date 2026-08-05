@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface BrandRepository extends JpaRepository<Brand, UUID> {
     Optional<Brand> findBySlug(String slug);
+    Optional<Brand> findByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCase(String name);
 }
