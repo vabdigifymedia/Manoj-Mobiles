@@ -1,6 +1,7 @@
 package com.api.manojmobiles.controller;
 
 import com.api.manojmobiles.dto.ApiResponse;
+import com.api.manojmobiles.dto.product.ProductListResponseDTO;
 import com.api.manojmobiles.dto.product.ProductRequestDTO;
 import com.api.manojmobiles.dto.product.ProductResponseDTO;
 import com.api.manojmobiles.dto.product.ProductSpecificationRequestDTO;
@@ -26,8 +27,8 @@ public class ProductController {
     // ======================== Public (read) endpoints ========================
 
     @GetMapping("/api/public/products")
-    public ResponseEntity<ApiResponse<List<ProductResponseDTO>>> getAllProducts() {
-        List<ProductResponseDTO> products = productService.getAllProducts();
+    public ResponseEntity<ApiResponse<List<ProductListResponseDTO>>> getAllProducts() {
+        List<ProductListResponseDTO> products = productService.getAllProducts();
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 
@@ -44,8 +45,8 @@ public class ProductController {
     }
 
     @GetMapping("/api/public/products/category/{categoryId}")
-    public ResponseEntity<ApiResponse<List<ProductResponseDTO>>> getProductsByCategory(@PathVariable UUID categoryId) {
-        List<ProductResponseDTO> products = productService.getProductsByCategory(categoryId);
+    public ResponseEntity<ApiResponse<List<ProductListResponseDTO>>> getProductsByCategory(@PathVariable UUID categoryId) {
+        List<ProductListResponseDTO> products = productService.getProductsByCategory(categoryId);
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 

@@ -1,5 +1,6 @@
 package com.api.manojmobiles.service;
 
+import com.api.manojmobiles.dto.product.ProductListResponseDTO;
 import com.api.manojmobiles.dto.product.ProductRequestDTO;
 import com.api.manojmobiles.dto.product.ProductResponseDTO;
 import com.api.manojmobiles.dto.product.ProductSpecificationRequestDTO;
@@ -82,9 +83,9 @@ public class ProductService {
         return mapToResponseDTO(product);
     }
 
-    public List<ProductResponseDTO> getAllProducts() {
+    public List<ProductListResponseDTO> getAllProducts() {
         return productRepository.findAll().stream()
-                .map(this::mapToResponseDTO)
+                .map(this::mapToListDTO)
                 .collect(Collectors.toList());
     }
 
@@ -94,9 +95,9 @@ public class ProductService {
         return mapToResponseDTO(product);
     }
 
-    public List<ProductResponseDTO> getProductsByCategory(UUID categoryId) {
+    public List<ProductListResponseDTO> getProductsByCategory(UUID categoryId) {
         return productRepository.findByCategoryId(categoryId).stream()
-                .map(this::mapToResponseDTO)
+                .map(this::mapToListDTO)
                 .collect(Collectors.toList());
     }
 
@@ -331,6 +332,41 @@ public class ProductService {
                                 .build())
                         .collect(Collectors.toList())
                         : Collections.emptyList())
+                .build();
+    }
+
+    private ProductListResponseDTO mapToListDTO(Product product) {
+        BigDecimal startingPrice = null;
+        String primaryImageUrl = null;
+
+        List<ProductVariant> variants = product.getVariants();
+        if (variants != null && !variants.isEmpty()) {
+            startingPrice = variants.stream()
+                    .map(ProductVariant::getSellingPrice)
+                    .filter(p -> p != null)
+                    .min(BigDecimal::compareTo)
+                    .orElse(null);
+
+            // First variant ki pehli image as primary
+            for (ProductVariant v : variants) {
+                if (v.getImages() != null && !v.getImages().isEmpty()) {
+                    primaryImageUrl = v.getImages().get(0).getUrl();
+                    break;
+                }
+            }
+        }
+
+        return ProductListResponseDTO.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .brandName(product.getBrand() != null ? product.getBrand().getName() : null)
+                .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
+                .slug(product.getSlug())
+                .status(product.getStatus() != null ? product.getStatus().name() : null)
+                .startingPrice(startingPrice)
+                .primaryImageUrl(primaryImageUrl)
+                .avgRating(product.getAvgRating())
+                .totalReviews(product.getTotalReviews())
                 .build();
     }
 }
