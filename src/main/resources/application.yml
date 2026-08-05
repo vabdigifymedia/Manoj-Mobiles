@@ -27,7 +27,7 @@ spring:
 app:
   jwt:
     secret: b91778d8fc8ba7ece3cd0b71d29063d516cf0a1fa2850d084c5e827fafd79ddc
-    expiration-in-ms: 604800000
+    expiration-in-ms: 900000
 
   # Redis TTL & Rate Limiting Configuration
   redis:
