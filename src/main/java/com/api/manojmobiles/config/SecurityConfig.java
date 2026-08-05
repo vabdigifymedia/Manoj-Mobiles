@@ -1,9 +1,7 @@
 package com.api.manojmobiles.config;
 
-import com.api.manojmobiles.dto.ApiResponse;
 import com.api.manojmobiles.security.CustomUserDetailsService;
 import com.api.manojmobiles.security.JwtAuthenticationFilter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.time.LocalDateTime;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -29,7 +29,6 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService customUserDetailsService;
-    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -43,14 +42,14 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setContentType("application/json");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            ApiResponse<Object> apiResponse = ApiResponse.error("Unauthorized: Invalid, missing, or expired JWT token");
-                            objectMapper.writeValue(response.getOutputStream(), apiResponse);
+                            response.getWriter().write(buildErrorJson(
+                                    "Unauthorized: Invalid, missing, or expired JWT token"));
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setContentType("application/json");
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            ApiResponse<Object> apiResponse = ApiResponse.error("Access Denied: You do not have permission to perform this action");
-                            objectMapper.writeValue(response.getOutputStream(), apiResponse);
+                            response.getWriter().write(buildErrorJson(
+                                    "Access Denied: You do not have permission to perform this action"));
                         })
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -58,6 +57,10 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private String buildErrorJson(String message) {
+        return "{\"success\":false,\"message\":\"" + message + "\",\"data\":null,\"timestamp\":\"" + LocalDateTime.now() + "\"}";
     }
 
     @Bean
@@ -77,3 +80,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+
