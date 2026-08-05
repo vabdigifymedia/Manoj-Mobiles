@@ -12,7 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
@@ -29,11 +30,11 @@ public class AddressController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<List<AddressResponseDTO>>> getAddresses(Principal principal) {
-        if (principal == null) {
+    public ResponseEntity<ApiResponse<List<AddressResponseDTO>>> getAddresses(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
-        List<AddressResponseDTO> addresses = addressService.getUserAddresses(principal.getName());
+        List<AddressResponseDTO> addresses = addressService.getUserAddresses(userDetails.getUsername());
         return ResponseEntity.ok(ApiResponse.success("Addresses fetched successfully", addresses));
     }
 
@@ -41,10 +42,10 @@ public class AddressController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<AddressResponseDTO>> createAddress(
             @Valid @RequestBody AddressRequestDTO request,
-            Principal principal,
+            @AuthenticationPrincipal UserDetails userDetails,
             HttpServletRequest httpRequest) {
         
-        if (principal == null) {
+        if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
 
@@ -56,7 +57,7 @@ public class AddressController {
                 Duration.ofMinutes(1)
         );
 
-        AddressResponseDTO created = addressService.createAddress(principal.getName(), request);
+        AddressResponseDTO created = addressService.createAddress(userDetails.getUsername(), request);
         return new ResponseEntity<>(ApiResponse.success("Address created successfully", created), HttpStatus.CREATED);
     }
 
@@ -65,10 +66,10 @@ public class AddressController {
     public ResponseEntity<ApiResponse<AddressResponseDTO>> updateAddress(
             @PathVariable UUID id,
             @Valid @RequestBody AddressRequestDTO request,
-            Principal principal,
+            @AuthenticationPrincipal UserDetails userDetails,
             HttpServletRequest httpRequest) {
         
-        if (principal == null) {
+        if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
 
@@ -80,7 +81,7 @@ public class AddressController {
                 Duration.ofMinutes(1)
         );
 
-        AddressResponseDTO updated = addressService.updateAddress(id, principal.getName(), request);
+        AddressResponseDTO updated = addressService.updateAddress(id, userDetails.getUsername(), request);
         return ResponseEntity.ok(ApiResponse.success("Address updated successfully", updated));
     }
 
@@ -88,13 +89,13 @@ public class AddressController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<Void>> deleteAddress(
             @PathVariable UUID id,
-            Principal principal) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         
-        if (principal == null) {
+        if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
 
-        addressService.deleteAddress(id, principal.getName());
+        addressService.deleteAddress(id, userDetails.getUsername());
         return ResponseEntity.ok(ApiResponse.success("Address deleted successfully", null));
     }
 

@@ -25,7 +25,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -135,13 +136,13 @@ public class AuthController {
     @PostMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @Valid @RequestBody ChangePasswordRequestDTO request,
-            Principal principal) {
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        if (principal == null) {
+        if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
 
-        authService.changePassword(principal.getName(), request);
+        authService.changePassword(userDetails.getUsername(), request);
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
     }
 }
