@@ -20,7 +20,10 @@ public class ProductVariantResponseDTO {
     private BigDecimal mrp;
     private BigDecimal sellingPrice;
     private Integer discountPercent;
+    private BigDecimal gstPercent;
+    private Integer stockQty;
     private StockStatus stockStatus;
+    private Boolean codAvailable;
     private List<String> imageUrls;
     private List<ProductSpecificationResponseDTO> specifications;
 }

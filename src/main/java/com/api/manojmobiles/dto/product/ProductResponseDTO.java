@@ -15,9 +15,15 @@ public class ProductResponseDTO {
 
     private UUID id;
     private String name;
+    private UUID brandId;
     private String brandName;
+    private UUID categoryId;
     private String categoryName;
     private String description;
+    private String status;
+    private Integer warrantyMonths;
+    private Integer returnPolicyDays;
+    private Boolean isReturnable;
     private BigDecimal avgRating;
     private Integer totalReviews;
     private String slug;
