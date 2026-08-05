@@ -2,6 +2,7 @@ package com.api.manojmobiles.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
+@Slf4j
 @Component
 public class JwtTokenProvider {
 
@@ -66,8 +68,16 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(authToken);
             return true;
-        } catch (JwtException | IllegalArgumentException ex) {
-            // Log exception here if needed
+        } catch (ExpiredJwtException ex) {
+            log.warn("JWT token has expired: {}", ex.getMessage());
+        } catch (MalformedJwtException ex) {
+            log.warn("Invalid JWT token format: {}", ex.getMessage());
+        } catch (UnsupportedJwtException ex) {
+            log.warn("Unsupported JWT token: {}", ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            log.warn("JWT claims string is empty: {}", ex.getMessage());
+        } catch (JwtException ex) {
+            log.warn("JWT signature / validation error: {}", ex.getMessage());
         }
         return false;
     }

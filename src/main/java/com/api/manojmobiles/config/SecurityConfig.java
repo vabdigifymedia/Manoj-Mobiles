@@ -1,7 +1,10 @@
 package com.api.manojmobiles.config;
 
+import com.api.manojmobiles.dto.ApiResponse;
 import com.api.manojmobiles.security.CustomUserDetailsService;
 import com.api.manojmobiles.security.JwtAuthenticationFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +29,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService customUserDetailsService;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -33,8 +37,22 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/health-check").permitAll()
-                        .requestMatchers("/api/public/**").permitAll() // Products, categories, etc. can go here
+                        .requestMatchers("/api/public/**").permitAll()
                         .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            ApiResponse<Object> apiResponse = ApiResponse.error("Unauthorized: Invalid, missing, or expired JWT token");
+                            objectMapper.writeValue(response.getOutputStream(), apiResponse);
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            ApiResponse<Object> apiResponse = ApiResponse.error("Access Denied: You do not have permission to perform this action");
+                            objectMapper.writeValue(response.getOutputStream(), apiResponse);
+                        })
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
