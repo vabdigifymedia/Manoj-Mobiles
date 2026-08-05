@@ -321,7 +321,7 @@ public class ProductService {
                 .stockStatus(v.getStockStatus())
                 .codAvailable(v.getCodAvailable())
                 .imageUrls(v.getImages() != null
-                        ? v.getImages().stream().map(ProductImage::getUrl).collect(Collectors.toList())
+                        ? v.getImages().stream().map(img -> img.getUrl()).collect(Collectors.toList())
                         : Collections.emptyList())
                 .specifications(v.getSpecifications() != null
                         ? v.getSpecifications().stream().map(spec -> ProductSpecificationResponseDTO.builder()
