@@ -126,7 +126,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> addVariantSpecifications(
             @PathVariable UUID variantId,
-            @Valid @RequestBody List<ProductSpecificationRequestDTO> specs) {
+            @RequestBody List<@Valid ProductSpecificationRequestDTO> specs) {
         productService.addVariantSpecifications(variantId, specs);
         return new ResponseEntity<>(ApiResponse.success("Specifications added successfully", null), HttpStatus.CREATED);
     }

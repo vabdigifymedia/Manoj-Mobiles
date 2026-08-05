@@ -342,9 +342,9 @@ public class ProductService {
         List<ProductVariant> variants = product.getVariants();
         if (variants != null && !variants.isEmpty()) {
             startingPrice = variants.stream()
-                    .map(ProductVariant::getSellingPrice)
-                    .filter(p -> p != null)
-                    .min(BigDecimal::compareTo)
+                    .filter(v -> v != null && v.getSellingPrice() != null)
+                    .map(v -> v.getSellingPrice())
+                    .min(java.util.Comparator.naturalOrder())
                     .orElse(null);
 
             // First variant ki pehli image as primary
