@@ -64,7 +64,15 @@ public class AuthController {
 
     @PostMapping("/staff/login")
     public ResponseEntity<ApiResponse<AuthResponseDTO>> authenticateStaff(
-            @Valid @RequestBody StaffLoginRequestDTO loginRequest) {
+            @Valid @RequestBody StaffLoginRequestDTO loginRequest,
+            HttpServletRequest request) {
+
+        String ip = getClientIp(request);
+        rateLimiterService.checkRateLimit(
+                "rate:login:" + ip,
+                redisProperties.getRate().getLoginLimit(),
+                redisProperties.getRate().getLoginWindow());
+
         AuthResponseDTO response = authService.authenticateStaff(loginRequest);
         return ResponseEntity.ok(ApiResponse.success("Staff Login successful", response));
     }
