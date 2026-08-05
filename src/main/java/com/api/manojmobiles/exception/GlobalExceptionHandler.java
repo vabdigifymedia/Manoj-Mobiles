@@ -13,6 +13,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -67,6 +68,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         return new ResponseEntity<>(ApiResponse.error("Database constraint violation or duplicate entry"), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNoResourceFoundException(NoResourceFoundException ex) {
+        return new ResponseEntity<>(ApiResponse.error("API Endpoint not found: " + ex.getResourcePath()), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)

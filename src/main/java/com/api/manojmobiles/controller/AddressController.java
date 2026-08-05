@@ -17,6 +17,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/user/addresses")
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class AddressController {
     private final RateLimiterService rateLimiterService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<AddressResponseDTO>>> getAddresses(Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
@@ -35,6 +38,7 @@ public class AddressController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<AddressResponseDTO>> createAddress(
             @Valid @RequestBody AddressRequestDTO request,
             Principal principal,
@@ -57,6 +61,7 @@ public class AddressController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<AddressResponseDTO>> updateAddress(
             @PathVariable UUID id,
             @Valid @RequestBody AddressRequestDTO request,
@@ -80,6 +85,7 @@ public class AddressController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<Void>> deleteAddress(
             @PathVariable UUID id,
             Principal principal) {
