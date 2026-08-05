@@ -186,7 +186,8 @@ public class AuthService {
         String identifier = user.getEmail() != null ? user.getEmail() : user.getPhone();
         String newJwt = tokenProvider.generateToken(identifier);
 
-        // Rotate refresh token (create new one, old one is overwritten)
+        // Rotate refresh token: delete old one, create new one
+        refreshTokenService.deleteRefreshToken(userId, refreshToken);
         String newRefreshToken = refreshTokenService.createRefreshToken(userId);
 
         return AuthResponseDTO.builder()
