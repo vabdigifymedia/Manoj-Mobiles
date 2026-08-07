@@ -145,10 +145,22 @@ public class ProductService {
     @Transactional
     @CacheEvict(value = "products", key = "'product:' + #id")
     public void deleteProduct(UUID id) {
-        if (!productRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Product not found with id: " + id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+
+        if (product.getVariants() != null && !product.getVariants().isEmpty()) {
+            for (ProductVariant variant : product.getVariants()) {
+                if (variant.getImages() != null && !variant.getImages().isEmpty()) {
+                    imageRepository.deleteAll(variant.getImages());
+                }
+                if (variant.getSpecifications() != null && !variant.getSpecifications().isEmpty()) {
+                    specRepository.deleteAll(variant.getSpecifications());
+                }
+                variantRepository.delete(variant);
+            }
         }
-        productRepository.deleteById(id);
+
+        productRepository.delete(product);
         log.info("Product deleted: id={}", id);
     }
 

@@ -20,7 +20,6 @@ public class BrandService {
 
     private final BrandRepository brandRepository;
 
-    @Cacheable(value = "brands", key = "'all_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<BrandResponseDTO> getAllBrands(
             org.springframework.data.domain.Pageable pageable) {

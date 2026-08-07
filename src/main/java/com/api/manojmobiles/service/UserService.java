@@ -8,6 +8,10 @@ import com.api.manojmobiles.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.api.manojmobiles.dto.user.UserResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 
 @Service
@@ -15,6 +19,11 @@ import java.time.LocalDateTime;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(this::mapToUserResponse);
+    }
 
     public UserProfileResponseDTO getUserProfile(String email) {
         User user = userRepository.findByEmail(email)
@@ -45,6 +54,19 @@ public class UserService {
                 .role(user.getRole())
                 .status(user.getStatus().name())
                 .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+    private UserResponseDTO mapToUserResponse(User user) {
+        return UserResponseDTO.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .role(user.getRole())
+                .status(user.getStatus())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 }
