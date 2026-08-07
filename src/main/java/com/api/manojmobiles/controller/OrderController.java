@@ -3,6 +3,8 @@ package com.api.manojmobiles.controller;
 import com.api.manojmobiles.dto.ApiResponse;
 import com.api.manojmobiles.dto.order.OrderResponseDTO;
 import com.api.manojmobiles.dto.order.PlaceOrderRequestDTO;
+import com.api.manojmobiles.dto.delivery.LocationResponseDTO;
+import com.api.manojmobiles.service.DeliveryService;
 import com.api.manojmobiles.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +30,7 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
+    private final DeliveryService deliveryService;
 
     @PostMapping
     @Operation(summary = "Place a new order")
@@ -75,5 +78,14 @@ public class OrderController {
             @Valid @RequestBody com.api.manojmobiles.dto.order.CancelOrderRequestDTO request) {
         OrderResponseDTO cancelledOrder = orderService.cancelOrder(principal.getName(), orderId, request);
         return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", cancelledOrder));
+    }
+
+    @GetMapping("/{orderId}/track")
+    @Operation(summary = "Track the live location of an OUT_FOR_DELIVERY order")
+    public ResponseEntity<ApiResponse<LocationResponseDTO>> trackOrderLocation(
+            Principal principal,
+            @PathVariable UUID orderId) {
+        LocationResponseDTO location = deliveryService.trackOrderLocation(principal.getName(), orderId);
+        return ResponseEntity.ok(ApiResponse.success("Location fetched successfully", location));
     }
 }

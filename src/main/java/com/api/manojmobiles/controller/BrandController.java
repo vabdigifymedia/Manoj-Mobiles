@@ -25,7 +25,7 @@ public class BrandController {
 
     private final BrandService brandService;
 
-    // Public (read) endpoints
+
 
     @GetMapping("/api/public/brands")
     public ResponseEntity<ApiResponse<Page<BrandResponseDTO>>> getAllBrands(
@@ -46,7 +46,7 @@ public class BrandController {
         return ResponseEntity.ok(ApiResponse.success("Brand fetched successfully", brand));
     }
 
-    // Admin (write) endpoints
+
 
     @PostMapping("/api/brands")
     @PreAuthorize("hasRole('ADMIN')")

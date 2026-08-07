@@ -19,7 +19,7 @@ public class ProductListResponseDTO {
     private String slug;
     private String status;
 
-    // Sirf pehle variant ki summary dikhayenge (price range ke liye)
+    // Summary fields for catalog grid display
     private BigDecimal startingPrice;
     private String primaryImageUrl;
     private BigDecimal avgRating;

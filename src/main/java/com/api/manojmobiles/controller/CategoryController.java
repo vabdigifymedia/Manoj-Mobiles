@@ -14,11 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Category REST controller.
- * Public read endpoints under /api/public/categories.
- * Admin write endpoints under /api/categories (require auth).
- */
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @Tag(name = "Category")
@@ -27,7 +23,7 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    // Public (read) endpoints
+
 
     @GetMapping("/api/public/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getRootCategories() {
@@ -53,7 +49,7 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.success("Category fetched successfully", category));
     }
 
-    // Admin (write) endpoints
+
 
     @PostMapping("/api/categories")
     @PreAuthorize("hasRole('ADMIN')")

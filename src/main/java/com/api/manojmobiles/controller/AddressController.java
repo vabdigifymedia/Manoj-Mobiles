@@ -104,6 +104,7 @@ public class AddressController {
         return ResponseEntity.ok(ApiResponse.success("Address deleted successfully", null));
     }
 
+    // Extract client IP, accounting for reverse proxies (X-Forwarded-For)
     private String getClientIp(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null || xfHeader.isEmpty()) {

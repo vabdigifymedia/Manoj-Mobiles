@@ -23,6 +23,8 @@ import org.springframework.data.web.PageableDefault;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.api.manojmobiles.dto.product.InventoryAdjustmentRequestDTO;
 
+import org.springdoc.core.annotations.ParameterObject;
+
 @RestController
 @Tag(name = "Product")
 @RequiredArgsConstructor
@@ -30,11 +32,11 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // ======================== Public (read) endpoints ========================
+
 
     @GetMapping("/api/public/products")
     public ResponseEntity<ApiResponse<Page<ProductListResponseDTO>>> getAllProducts(
-            @PageableDefault(size = 20) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         Page<ProductListResponseDTO> products = productService.getAllProducts(pageable);
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
@@ -42,7 +44,7 @@ public class ProductController {
     @GetMapping("/api/public/products/search")
     public ResponseEntity<ApiResponse<Page<ProductListResponseDTO>>> searchProducts(
             @RequestParam("q") String query,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         Page<ProductListResponseDTO> products = productService.searchProducts(query, pageable);
         return ResponseEntity.ok(ApiResponse.success("Products searched successfully", products));
     }
@@ -62,7 +64,7 @@ public class ProductController {
     @GetMapping("/api/public/products/category/{categoryId}")
     public ResponseEntity<ApiResponse<Page<ProductListResponseDTO>>> getProductsByCategory(
             @PathVariable UUID categoryId,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         Page<ProductListResponseDTO> products = productService.getProductsByCategory(categoryId, pageable);
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
@@ -73,7 +75,7 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Variant fetched successfully", variant));
     }
 
-    // ======================== Admin - Product CRUD ========================
+
 
     @PostMapping("/api/products")
     @PreAuthorize("hasRole('ADMIN')")
@@ -99,7 +101,7 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Product deleted successfully", null));
     }
 
-    // ======================== Admin - Variant CRUD ========================
+
 
     @PostMapping("/api/products/variants")
     @PreAuthorize("hasRole('ADMIN')")
@@ -134,7 +136,7 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Inventory adjusted successfully", updated));
     }
 
-    // ======================== Admin - Image CRUD ========================
+
 
     @PostMapping("/api/products/variants/{variantId}/images")
     @PreAuthorize("hasRole('ADMIN')")
@@ -152,7 +154,7 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Image deleted successfully", null));
     }
 
-    // ======================== Admin - Specification CRUD ========================
+
 
     @PostMapping("/api/products/variants/{variantId}/specifications")
     @PreAuthorize("hasRole('ADMIN')")

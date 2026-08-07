@@ -41,7 +41,7 @@ public class AuthController {
     private final RateLimiterService rateLimiterService;
     private final RedisProperties redisProperties;
 
-    // Helper to get client IP
+    // Extract client IP, accounting for reverse proxies
     private String getClientIp(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader != null && !xfHeader.isEmpty()) {
@@ -90,7 +90,7 @@ public class AuthController {
         return new ResponseEntity<>(ApiResponse.success("User registered successfully", response), HttpStatus.CREATED);
     }
 
-    // OTP Endpoints
+
 
     @Operation(summary = "Send OTP", description = "Sends an OTP to the customer's phone number")
     @PostMapping("/send-otp")
@@ -108,7 +108,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("OTP sent successfully", null));
     }
 
-    // Password Reset
+
 
     @Operation(summary = "Forgot Password", description = "Initiates the password reset process by generating a reset token")
     @PostMapping("/forgot-password")
@@ -123,8 +123,7 @@ public class AuthController {
                 redisProperties.getRate().getForgotPasswordWindow());
 
         String token = authService.forgotPassword(requestBody.getEmail());
-        // In production, send the token via email. Here we return it for testing
-        // purposes.
+        // Return reset token in response payload for dev/staging testing
         return ResponseEntity.ok(ApiResponse.success("Password reset initiated", token));
     }
 
@@ -135,7 +134,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Password reset successfully", null));
     }
 
-    // Refresh & Logout
+
 
     @Operation(summary = "Refresh Token", description = "Generates a new access token using a valid refresh token")
     @PostMapping("/refresh")

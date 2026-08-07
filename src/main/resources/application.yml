@@ -1,57 +1,54 @@
+server:
+  port: ${SERVER_PORT:8080}
+
 spring:
   application:
     name: manojmobiles
 
-  # PostgreSQL Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5432/manojmobiles
-    username: postgres
-    password: Ankur@123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/manojmobiles}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:Ankur@123}
+
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
 
-  # Redis Configuration
   data:
     redis:
-      host: localhost
-      port: 6379
-      timeout: 5000ms
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: ${SPRING_DATA_REDIS_TIMEOUT:5000ms}
 
-  # Spring Cache Type
   cache:
     type: redis
 
-# JWT Configuration
 app:
   jwt:
-    secret: b91778d8fc8ba7ece3cd0b71d29063d516cf0a1fa2850d084c5e827fafd79ddc
-    expiration-in-ms: 900000
+    secret: ${JWT_SECRET:b91778d8fc8ba7ece3cd0b71d29063d516cf0a1fa2850d084c5e827fafd79ddc}
+    expiration-in-ms: ${JWT_EXPIRATION_MS:900000}
 
-  # Redis TTL & Rate Limiting Configuration
   redis:
-    otp-ttl: 2m
-    refresh-token-ttl: 7d
-    password-reset-ttl: 10m
+    otp-ttl: ${OTP_TTL:2m}
+    refresh-token-ttl: ${REFRESH_TOKEN_TTL:7d}
+    password-reset-ttl: ${PASSWORD_RESET_TTL:10m}
     cache:
-      product-ttl: 1h
-      category-ttl: 6h
+      product-ttl: ${PRODUCT_CACHE_TTL:1h}
+      category-ttl: ${CATEGORY_CACHE_TTL:6h}
     rate:
-      login-limit: 5
-      login-window: 10m
-      otp-limit: 3
-      otp-window: 10m
-      forgot-password-limit: 3
-      forgot-password-window: 1h
+      login-limit: ${RATE_LOGIN_LIMIT:5}
+      login-window: ${RATE_LOGIN_WINDOW:10m}
+      otp-limit: ${RATE_OTP_LIMIT:3}
+      otp-window: ${RATE_OTP_WINDOW:10m}
+      forgot-password-limit: ${RATE_FORGOT_PASSWORD_LIMIT:3}
+      forgot-password-window: ${RATE_FORGOT_PASSWORD_WINDOW:1h}
 
   cart:
-    max-qty-per-item: 5
+    max-qty-per-item: ${CART_MAX_QTY_PER_ITEM:5}
 
   initial-admin:
-    name: Super Admin
-    email: admin@manojmobiles.com
-    password: Admin@123
-    phone: 9999999999
-
-
+    name: ${INITIAL_ADMIN_NAME:Super Admin}
+    email: ${INITIAL_ADMIN_EMAIL:admin@manojmobiles.com}
+    password: ${INITIAL_ADMIN_PASSWORD:Admin@123}
+    phone: ${INITIAL_ADMIN_PHONE:9999999999}

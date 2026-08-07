@@ -55,7 +55,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final InventoryLogRepository inventoryLogRepository;
 
-    // ======================== Product CRUD ========================
+
 
     @Transactional
     public ProductResponseDTO createProduct(ProductRequestDTO request) {
@@ -152,7 +152,7 @@ public class ProductService {
         log.info("Product deleted: id={}", id);
     }
 
-    // ======================== Variant CRUD ========================
+
 
     public ProductVariantResponseDTO getVariantById(UUID variantId) {
         ProductVariant variant = variantRepository.findById(variantId)
@@ -250,7 +250,7 @@ public class ProductService {
         log.info("Variant deleted: id={}", variantId);
     }
 
-    // ======================== Image CRUD ========================
+
 
     @Transactional
     public void addVariantImages(UUID variantId, List<String> imageUrls) {
@@ -279,7 +279,7 @@ public class ProductService {
         log.info("Image deleted: id={}", imageId);
     }
 
-    // ======================== Specification CRUD ========================
+
 
     @Transactional
     public void addVariantSpecifications(UUID variantId, List<ProductSpecificationRequestDTO> specs) {
@@ -307,7 +307,7 @@ public class ProductService {
         log.info("Specification deleted: id={}", specId);
     }
 
-    // ======================== Helper Methods ========================
+
 
     private int calculateDiscountPercent(BigDecimal mrp, BigDecimal sellingPrice) {
         if (mrp == null || sellingPrice == null || mrp.compareTo(BigDecimal.ZERO) == 0) {
@@ -325,7 +325,7 @@ public class ProductService {
         return StockStatus.IN_STOCK;
     }
 
-    // ======================== Mapping ========================
+
 
     private ProductResponseDTO mapToResponseDTO(Product product) {
         return ProductResponseDTO.builder()
@@ -392,7 +392,8 @@ public class ProductService {
                     .min(java.util.Comparator.naturalOrder())
                     .orElse(null);
 
-            // First variant ki pehli image as primary
+
+            // Use the primary image of the first variant as the card thumbnail
             for (ProductVariant v : variants) {
                 if (v.getImages() != null && !v.getImages().isEmpty()) {
                     primaryImageUrl = v.getImages().get(0).getUrl();
