@@ -25,7 +25,7 @@ public class CloudinaryService {
         if (folderName != null && !folderName.isBlank()) {
             options.put("folder", "ManojMobiles/" + folderName);
         } else {
-            options.put("folder", "ManojMobiles/uncategorized");
+            options.put("folder", "ManojMobiles/general");
         }
 
         @SuppressWarnings("unchecked")
