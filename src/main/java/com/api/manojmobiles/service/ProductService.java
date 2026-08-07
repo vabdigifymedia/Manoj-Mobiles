@@ -34,6 +34,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.api.manojmobiles.dto.product.InventoryAdjustmentRequestDTO;
 import com.api.manojmobiles.entity.InventoryLog;
@@ -88,10 +90,9 @@ public class ProductService {
         return mapToResponseDTO(product);
     }
 
-    public List<ProductListResponseDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::mapToListDTO)
-                .collect(Collectors.toList());
+    public Page<ProductListResponseDTO> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(this::mapToListDTO);
     }
 
     public ProductResponseDTO getProductBySlug(String slug) {
@@ -100,19 +101,17 @@ public class ProductService {
         return mapToResponseDTO(product);
     }
 
-    public List<ProductListResponseDTO> getProductsByCategory(UUID categoryId) {
-        return productRepository.findByCategoryId(categoryId).stream()
-                .map(this::mapToListDTO)
-                .collect(Collectors.toList());
+    public Page<ProductListResponseDTO> getProductsByCategory(UUID categoryId, Pageable pageable) {
+        return productRepository.findByCategoryId(categoryId, pageable)
+                .map(this::mapToListDTO);
     }
 
-    public List<ProductListResponseDTO> searchProducts(String query) {
+    public Page<ProductListResponseDTO> searchProducts(String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
-            return getAllProducts();
+            return getAllProducts(pageable);
         }
-        return productRepository.searchProducts(query).stream()
-                .map(this::mapToListDTO)
-                .collect(Collectors.toList());
+        return productRepository.searchProducts(query, pageable)
+                .map(this::mapToListDTO);
     }
 
     @Transactional

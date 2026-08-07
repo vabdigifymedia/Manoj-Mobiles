@@ -14,13 +14,16 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import java.time.Duration;
-import java.util.List;
 import java.util.UUID;
+import java.time.Duration;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @Tag(name = "Address")
 @RequestMapping("/api/user/addresses")
@@ -32,11 +35,13 @@ public class AddressController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<List<AddressResponseDTO>>> getAddresses(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<ApiResponse<Page<AddressResponseDTO>>> getAddresses(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PageableDefault(size = 10) Pageable pageable) {
         if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
-        List<AddressResponseDTO> addresses = addressService.getUserAddresses(userDetails.getUsername());
+        Page<AddressResponseDTO> addresses = addressService.getUserAddresses(userDetails.getUsername(), pageable);
         return ResponseEntity.ok(ApiResponse.success("Addresses fetched successfully", addresses));
     }
 
@@ -46,7 +51,7 @@ public class AddressController {
             @Valid @RequestBody AddressRequestDTO request,
             @AuthenticationPrincipal UserDetails userDetails,
             HttpServletRequest httpRequest) {
-        
+
         if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
@@ -56,8 +61,7 @@ public class AddressController {
         rateLimiterService.checkRateLimit(
                 "rate:address:write:" + ip,
                 10,
-                Duration.ofMinutes(1)
-        );
+                Duration.ofMinutes(1));
 
         AddressResponseDTO created = addressService.createAddress(userDetails.getUsername(), request);
         return new ResponseEntity<>(ApiResponse.success("Address created successfully", created), HttpStatus.CREATED);
@@ -70,7 +74,7 @@ public class AddressController {
             @Valid @RequestBody AddressRequestDTO request,
             @AuthenticationPrincipal UserDetails userDetails,
             HttpServletRequest httpRequest) {
-        
+
         if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
@@ -80,8 +84,7 @@ public class AddressController {
         rateLimiterService.checkRateLimit(
                 "rate:address:write:" + ip,
                 10,
-                Duration.ofMinutes(1)
-        );
+                Duration.ofMinutes(1));
 
         AddressResponseDTO updated = addressService.updateAddress(id, userDetails.getUsername(), request);
         return ResponseEntity.ok(ApiResponse.success("Address updated successfully", updated));
@@ -92,7 +95,7 @@ public class AddressController {
     public ResponseEntity<ApiResponse<Void>> deleteAddress(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
+
         if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }

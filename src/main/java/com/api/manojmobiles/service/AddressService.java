@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +25,11 @@ public class AddressService {
     private static final int MAX_ADDRESSES_PER_USER = 10;
 
     @Transactional(readOnly = true)
-    public List<AddressResponseDTO> getUserAddresses(String identifier) {
+    public org.springframework.data.domain.Page<AddressResponseDTO> getUserAddresses(String identifier,
+            org.springframework.data.domain.Pageable pageable) {
         User user = getUserByEmailOrPhone(identifier);
-        return addressRepository.findByUserId(user.getId()).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return addressRepository.findByUserId(user.getId(), pageable)
+                .map(this::mapToDTO);
     }
 
     @Transactional(readOnly = true)
@@ -90,7 +89,7 @@ public class AddressService {
         address.setPincode(request.getPincode());
         address.setLat(request.getLat());
         address.setLng(request.getLng());
-        
+
         // If it's the only address, it must remain default
         List<Address> existingAddresses = addressRepository.findByUserId(user.getId());
         if (existingAddresses.size() == 1) {

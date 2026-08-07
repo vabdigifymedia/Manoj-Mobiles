@@ -11,10 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @Tag(name = "Brand")
 @RequiredArgsConstructor
@@ -25,8 +28,9 @@ public class BrandController {
     // Public (read) endpoints
 
     @GetMapping("/api/public/brands")
-    public ResponseEntity<ApiResponse<List<BrandResponseDTO>>> getAllBrands() {
-        List<BrandResponseDTO> brands = brandService.getAllBrands();
+    public ResponseEntity<ApiResponse<Page<BrandResponseDTO>>> getAllBrands(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<BrandResponseDTO> brands = brandService.getAllBrands(pageable);
         return ResponseEntity.ok(ApiResponse.success("Brands fetched successfully", brands));
     }
 

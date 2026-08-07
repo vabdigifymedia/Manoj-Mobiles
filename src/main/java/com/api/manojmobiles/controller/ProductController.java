@@ -14,9 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.api.manojmobiles.dto.product.InventoryAdjustmentRequestDTO;
@@ -31,15 +33,17 @@ public class ProductController {
     // ======================== Public (read) endpoints ========================
 
     @GetMapping("/api/public/products")
-    public ResponseEntity<ApiResponse<List<ProductListResponseDTO>>> getAllProducts() {
-        List<ProductListResponseDTO> products = productService.getAllProducts();
+    public ResponseEntity<ApiResponse<Page<ProductListResponseDTO>>> getAllProducts(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductListResponseDTO> products = productService.getAllProducts(pageable);
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 
     @GetMapping("/api/public/products/search")
-    public ResponseEntity<ApiResponse<List<ProductListResponseDTO>>> searchProducts(
-            @RequestParam("q") String query) {
-        List<ProductListResponseDTO> products = productService.searchProducts(query);
+    public ResponseEntity<ApiResponse<Page<ProductListResponseDTO>>> searchProducts(
+            @RequestParam("q") String query,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductListResponseDTO> products = productService.searchProducts(query, pageable);
         return ResponseEntity.ok(ApiResponse.success("Products searched successfully", products));
     }
 
@@ -56,8 +60,10 @@ public class ProductController {
     }
 
     @GetMapping("/api/public/products/category/{categoryId}")
-    public ResponseEntity<ApiResponse<List<ProductListResponseDTO>>> getProductsByCategory(@PathVariable UUID categoryId) {
-        List<ProductListResponseDTO> products = productService.getProductsByCategory(categoryId);
+    public ResponseEntity<ApiResponse<Page<ProductListResponseDTO>>> getProductsByCategory(
+            @PathVariable UUID categoryId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductListResponseDTO> products = productService.getProductsByCategory(categoryId, pageable);
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 
