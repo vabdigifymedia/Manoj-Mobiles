@@ -17,7 +17,7 @@ public class CloudinaryService {
     private final Cloudinary cloudinary;
 
     public String uploadImage(MultipartFile file, String folderName) throws IOException {
-        log.info("Uploading image to Cloudinary: {}", file.getOriginalFilename());
+        log.info("Uploading image to Cloudinary: {}, size: {} bytes", file.getOriginalFilename(), file.getSize());
 
         java.util.Map<String, Object> options = new java.util.HashMap<>();
         options.put("resource_type", "auto");
@@ -28,9 +28,29 @@ public class CloudinaryService {
             options.put("folder", "ManojMobiles/general");
         }
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(file.getBytes(), options);
+        int maxRetries = 3;
+        Exception lastException = null;
 
-        return uploadResult.get("secure_url").toString();
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(file.getBytes(), options);
+                log.info("Successfully uploaded image to Cloudinary on attempt {}", attempt);
+                return uploadResult.get("secure_url").toString();
+            } catch (Exception e) {
+                lastException = e;
+                log.warn("Cloudinary upload attempt {} of {} failed: {}", attempt, maxRetries, e.getMessage());
+                if (attempt < maxRetries) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        }
+
+        log.error("All {} Cloudinary upload attempts failed for file: {}", maxRetries, file.getOriginalFilename(), lastException);
+        throw new IOException("Cloudinary upload failed after retries: " + (lastException != null ? lastException.getMessage() : "Unknown error"), lastException);
     }
 }

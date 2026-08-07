@@ -27,7 +27,7 @@ public class FileUploadController {
         try {
             String imageUrl = cloudinaryService.uploadImage(file, folder);
             return ResponseEntity.ok(ApiResponse.success("Image uploaded successfully", imageUrl));
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().body(ApiResponse.error("Failed to upload image: " + e.getMessage()));
         }
     }
