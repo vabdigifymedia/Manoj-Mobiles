@@ -45,6 +45,6 @@ public class AdminOrderController {
             @PathVariable UUID orderId,
             @Valid @RequestBody UpdateOrderStatusRequestDTO request) {
         OrderResponseDTO updatedOrder = orderService.updateOrderStatus(orderId, request.getStatus(), request.getNote(), principal.getName());
-        return ResponseEntity.ok(ApiResponse.success("Order status updated successfully", updatedOrder));
+        return ResponseEntity.ok(ApiResponse.success("Order status updated successfully.", updatedOrder));
     }
 }
