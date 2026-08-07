@@ -45,6 +45,9 @@ app:
       forgot-password-limit: 3
       forgot-password-window: 1h
 
+  cart:
+    max-qty-per-item: 5
+
   initial-admin:
     name: Super Admin
     email: admin@manojmobiles.com

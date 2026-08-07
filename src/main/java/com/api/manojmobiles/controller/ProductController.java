@@ -18,7 +18,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import com.api.manojmobiles.dto.product.InventoryAdjustmentRequestDTO;
+
 @RestController
+@Tag(name = "Product")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -30,6 +34,13 @@ public class ProductController {
     public ResponseEntity<ApiResponse<List<ProductListResponseDTO>>> getAllProducts() {
         List<ProductListResponseDTO> products = productService.getAllProducts();
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
+    }
+
+    @GetMapping("/api/public/products/search")
+    public ResponseEntity<ApiResponse<List<ProductListResponseDTO>>> searchProducts(
+            @RequestParam("q") String query) {
+        List<ProductListResponseDTO> products = productService.searchProducts(query);
+        return ResponseEntity.ok(ApiResponse.success("Products searched successfully", products));
     }
 
     @GetMapping("/api/public/products/{id}")
@@ -48,6 +59,12 @@ public class ProductController {
     public ResponseEntity<ApiResponse<List<ProductListResponseDTO>>> getProductsByCategory(@PathVariable UUID categoryId) {
         List<ProductListResponseDTO> products = productService.getProductsByCategory(categoryId);
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
+    }
+
+    @GetMapping("/api/products/variants/{id}")
+    public ResponseEntity<ApiResponse<ProductVariantResponseDTO>> getVariantById(@PathVariable UUID id) {
+        ProductVariantResponseDTO variant = productService.getVariantById(id);
+        return ResponseEntity.ok(ApiResponse.success("Variant fetched successfully", variant));
     }
 
     // ======================== Admin - Product CRUD ========================
@@ -100,6 +117,15 @@ public class ProductController {
     public ResponseEntity<ApiResponse<Void>> deleteVariant(@PathVariable UUID id) {
         productService.deleteVariant(id);
         return ResponseEntity.ok(ApiResponse.success("Variant deleted successfully", null));
+    }
+
+    @PostMapping("/api/products/variants/{variantId}/inventory")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ProductVariantResponseDTO>> adjustInventory(
+            @PathVariable UUID variantId,
+            @Valid @RequestBody InventoryAdjustmentRequestDTO request) {
+        ProductVariantResponseDTO updated = productService.adjustInventory(variantId, request);
+        return ResponseEntity.ok(ApiResponse.success("Inventory adjusted successfully", updated));
     }
 
     // ======================== Admin - Image CRUD ========================

@@ -7,18 +7,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartItemRequestDTO {
+public class UpdateCartItemRequestDTO {
 
-    @NotNull
-    private UUID variantId;
-
-    @NotNull
-    @Min(1)
+    @NotNull(message = "Quantity cannot be null")
+    @Min(value = 1, message = "Quantity must be at least 1")
     private Integer qty;
 }

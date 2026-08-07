@@ -35,6 +35,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.api.manojmobiles.dto.product.InventoryAdjustmentRequestDTO;
+import com.api.manojmobiles.entity.InventoryLog;
+import com.api.manojmobiles.repository.InventoryLogRepository;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -47,6 +51,7 @@ public class ProductService {
     private final ProductSpecificationRepository specRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
+    private final InventoryLogRepository inventoryLogRepository;
 
     // ======================== Product CRUD ========================
 
@@ -101,6 +106,15 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    public List<ProductListResponseDTO> searchProducts(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return getAllProducts();
+        }
+        return productRepository.searchProducts(query).stream()
+                .map(this::mapToListDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     @CacheEvict(value = "products", key = "'product:' + #id")
     public ProductResponseDTO updateProduct(UUID id, ProductRequestDTO request) {
@@ -140,6 +154,38 @@ public class ProductService {
     }
 
     // ======================== Variant CRUD ========================
+
+    public ProductVariantResponseDTO getVariantById(UUID variantId) {
+        ProductVariant variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
+        return mapVariantToDTO(variant);
+    }
+
+    @Transactional
+    public ProductVariantResponseDTO adjustInventory(UUID variantId, InventoryAdjustmentRequestDTO request) {
+        ProductVariant variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
+
+        int newQty = variant.getStockQty() + request.getChangeQty();
+        if (newQty < 0) {
+            throw new com.api.manojmobiles.exception.BadRequestException("Inventory cannot go below 0");
+        }
+
+        variant.setStockQty(newQty);
+        variant.setStockStatus(determineStockStatus(newQty));
+
+        variantRepository.save(variant);
+
+        InventoryLog inventoryLog = InventoryLog.builder()
+                .variant(variant)
+                .changeQty(request.getChangeQty())
+                .reason(request.getReason())
+                .build();
+        inventoryLogRepository.save(inventoryLog);
+
+        log.info("Inventory adjusted for variant {}. Change: {}. New Qty: {}", variantId, request.getChangeQty(), newQty);
+        return mapVariantToDTO(variant);
+    }
 
     @Transactional
     @CacheEvict(value = "products", key = "'product:' + #request.productId")

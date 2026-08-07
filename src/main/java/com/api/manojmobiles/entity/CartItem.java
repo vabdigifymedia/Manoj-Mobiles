@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "cart_item")
+@Table(name = "cart_item", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"cart_id", "variant_id"})
+})
 @Getter
 @Setter
 @NoArgsConstructor

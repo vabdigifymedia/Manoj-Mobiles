@@ -20,7 +20,9 @@ import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
+@Tag(name = "Address")
 @RequestMapping("/api/user/addresses")
 @RequiredArgsConstructor
 public class AddressController {

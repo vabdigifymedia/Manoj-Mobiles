@@ -19,7 +19,9 @@ import java.util.UUID;
  * Public read endpoints under /api/public/categories.
  * Admin write endpoints under /api/categories (require auth).
  */
+import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
+@Tag(name = "Category")
 @RequiredArgsConstructor
 public class CategoryController {
 

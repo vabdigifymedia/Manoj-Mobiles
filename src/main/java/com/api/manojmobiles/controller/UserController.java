@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
+@Tag(name = "User")
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
