@@ -1,26 +1,43 @@
 package com.api.manojmobiles.dto.order;
 
+import com.api.manojmobiles.dto.address.AddressResponseDTO;
 import com.api.manojmobiles.entity.enums.OrderStatus;
-import lombok.*;
+import com.api.manojmobiles.entity.enums.PaymentMethod;
+import com.api.manojmobiles.entity.enums.PaymentStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class OrderResponseDTO {
-
     private UUID id;
     private String orderNumber;
+    private OrderStatus orderStatus;
+    
+    private AddressResponseDTO address;
+    
     private BigDecimal totalAmount;
     private BigDecimal discountAmount;
     private BigDecimal deliveryCharge;
-    private OrderStatus orderStatus;
+    private BigDecimal gstAmount;
+    private String invoiceNumber;
+    
+    private PaymentMethod paymentMethod;
+    private PaymentStatus paymentStatus;
+    private String txnId;
+    private LocalDateTime paidAt;
+    
     private LocalDateTime placedAt;
+    private LocalDateTime expectedDeliveryDate;
+
     private List<OrderItemResponseDTO> orderItems;
 }

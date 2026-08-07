@@ -5,11 +5,17 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
+import lombok.*;
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
 @Table(name = "order_items")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderItem {
 
     @Id
