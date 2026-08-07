@@ -14,5 +14,6 @@ public class BrandResponseDTO {
     private UUID id;
     private String name;
     private String logoUrl;
+    private String description;
     private String slug;
 }

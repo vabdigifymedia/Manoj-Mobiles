@@ -39,6 +39,9 @@ public class Category {
 
     private String imageUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     private String metaTitle;
     private String metaDescription;
     private String metaKeywords;

@@ -16,4 +16,6 @@ public class BrandRequestDTO {
     private String name;
 
     private String logoUrl;
+    
+    private String description;
 }

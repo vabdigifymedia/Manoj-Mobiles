@@ -19,5 +19,7 @@ public class CategoryRequestDTO {
 
     private String imageUrl;
 
+    private String description;
+
     private UUID parentId;
 }

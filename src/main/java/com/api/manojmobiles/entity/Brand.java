@@ -22,8 +22,10 @@ public class Brand {
     @NotBlank
     private String name;
 
-    @NotBlank
     private String logo_url;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     @Column(unique = true)
     private String slug;
