@@ -17,12 +17,19 @@ public class CloudinaryService {
 
     private final Cloudinary cloudinary;
 
-    public String uploadImage(MultipartFile file) throws IOException {
+    public String uploadImage(MultipartFile file, String folderName) throws IOException {
         log.info("Uploading image to Cloudinary: {}", file.getOriginalFilename());
         
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-            "resource_type", "auto"
-        ));
+        java.util.Map<String, Object> options = new java.util.HashMap<>();
+        options.put("resource_type", "auto");
+        
+        if (folderName != null && !folderName.isBlank()) {
+            options.put("folder", "ManojMobiles/" + folderName);
+        } else {
+            options.put("folder", "ManojMobiles/uncategorized");
+        }
+
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
         
         return uploadResult.get("secure_url").toString();
     }

@@ -21,9 +21,11 @@ public class FileUploadController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> uploadImage(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponse<String>> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "folder", required = false) String folder) {
         try {
-            String imageUrl = cloudinaryService.uploadImage(file);
+            String imageUrl = cloudinaryService.uploadImage(file, folder);
             return ResponseEntity.ok(ApiResponse.success("Image uploaded successfully", imageUrl));
         } catch (IOException e) {
             return ResponseEntity.internalServerError().body(ApiResponse.error("Failed to upload image: " + e.getMessage()));
