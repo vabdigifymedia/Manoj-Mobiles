@@ -58,4 +58,21 @@ public class AdminUserController {
         
         return ResponseEntity.ok(ApiResponse.success("Staff user created successfully", responseDTO));
     }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> updateUser(
+            @org.springframework.web.bind.annotation.PathVariable java.util.UUID id,
+            @Valid @RequestBody CreateStaffRequestDTO requestDTO) {
+        UserResponseDTO updatedUser = userService.updateUser(id, requestDTO);
+        return ResponseEntity.ok(ApiResponse.success("User updated successfully", updatedUser));
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @org.springframework.web.bind.annotation.PathVariable java.util.UUID id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponse.success("User deleted successfully", null));
+    }
 }

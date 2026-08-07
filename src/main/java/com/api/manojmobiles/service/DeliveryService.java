@@ -67,6 +67,32 @@ public class DeliveryService {
     }
 
     @Transactional
+    public DeliveryAgentResponseDTO updateDeliveryAgent(UUID id, DeliveryAgentRequestDTO request) {
+        DeliveryAgent agent = deliveryAgentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery agent not found with id: " + id));
+        
+        User user = agent.getUser();
+        user.setName(request.getName());
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
+        // Assuming email/phone updates might need unique checks, simplify for now or omit them.
+        userRepository.save(user);
+
+        agent.setVehicleNo(request.getVehicleNo());
+        DeliveryAgent updatedAgent = deliveryAgentRepository.save(agent);
+        return mapToAgentDTO(updatedAgent);
+    }
+
+    @Transactional
+    public void deleteDeliveryAgent(UUID id) {
+        DeliveryAgent agent = deliveryAgentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery agent not found with id: " + id));
+        deliveryAgentRepository.delete(agent);
+        userRepository.delete(agent.getUser());
+    }
+
+    @Transactional
     public DeliveryAgentResponseDTO updateAgentAvailability(String username, AvailabilityRequestDTO request) {
         User user = getUserByEmailOrPhone(username);
         DeliveryAgent agent = deliveryAgentRepository.findByUserId(user.getId())

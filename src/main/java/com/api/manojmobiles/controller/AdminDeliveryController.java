@@ -43,6 +43,22 @@ public class AdminDeliveryController {
         return ResponseEntity.ok(ApiResponse.success("Delivery agents fetched successfully", agents));
     }
 
+    @PutMapping("/delivery-agents/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<DeliveryAgentResponseDTO>> updateDeliveryAgent(
+            @PathVariable UUID id,
+            @Valid @RequestBody DeliveryAgentRequestDTO request) {
+        DeliveryAgentResponseDTO updatedAgent = deliveryService.updateDeliveryAgent(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Delivery agent updated successfully", updatedAgent));
+    }
+
+    @DeleteMapping("/delivery-agents/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteDeliveryAgent(@PathVariable UUID id) {
+        deliveryService.deleteDeliveryAgent(id);
+        return ResponseEntity.ok(ApiResponse.success("Delivery agent deleted successfully", null));
+    }
+
     @PostMapping("/orders/{orderId}/assign-agent")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ShipmentResponseDTO>> assignAgentToOrder(

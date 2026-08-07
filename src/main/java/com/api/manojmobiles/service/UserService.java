@@ -44,6 +44,28 @@ public class UserService {
 
         return mapToProfileResponse(updatedUser);
     }
+
+    public UserResponseDTO updateUser(java.util.UUID id, com.api.manojmobiles.dto.auth.CreateStaffRequestDTO updateRequest) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        user.setName(updateRequest.getName());
+        user.setEmail(updateRequest.getEmail());
+        user.setPhone(updateRequest.getPhone());
+        if (updateRequest.getRole() != null) {
+            user.setRole(updateRequest.getRole());
+        }
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        User updatedUser = userRepository.save(user);
+        return mapToUserResponse(updatedUser);
+    }
+
+    public void deleteUser(java.util.UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        userRepository.delete(user);
+    }
     
     private UserProfileResponseDTO mapToProfileResponse(User user) {
         return UserProfileResponseDTO.builder()

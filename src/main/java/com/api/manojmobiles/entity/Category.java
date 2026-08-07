@@ -37,6 +37,8 @@ public class Category {
     @Column(unique = true)
     private String slug;
 
+    private String imageUrl;
+
     private String metaTitle;
     private String metaDescription;
     private String metaKeywords;

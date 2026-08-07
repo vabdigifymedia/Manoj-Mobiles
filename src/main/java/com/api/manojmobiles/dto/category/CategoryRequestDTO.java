@@ -17,5 +17,7 @@ public class CategoryRequestDTO {
     @NotBlank
     private String name;
 
+    private String imageUrl;
+
     private UUID parentId;
 }

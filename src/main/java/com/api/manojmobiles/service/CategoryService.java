@@ -87,6 +87,7 @@ public class CategoryService {
         Category category = Category.builder()
                 .name(request.getName())
                 .slug(generateSlug(request.getName()))
+                .imageUrl(request.getImageUrl())
                 .build();
 
         if (request.getParentId() != null) {
@@ -112,6 +113,7 @@ public class CategoryService {
 
         category.setName(request.getName());
         category.setSlug(generateSlug(request.getName()));
+        category.setImageUrl(request.getImageUrl());
 
         if (request.getParentId() != null) {
             Category parent = categoryRepository.findById(request.getParentId())
@@ -147,6 +149,7 @@ public class CategoryService {
                 .id(category.getId())
                 .name(category.getName())
                 .slug(category.getSlug())
+                .imageUrl(category.getImageUrl())
                 .parentId(category.getParent() != null ? category.getParent().getId() : null)
                 .children(category.getChildren() != null
                         ? category.getChildren().stream()
