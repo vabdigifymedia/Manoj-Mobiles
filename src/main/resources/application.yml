@@ -52,3 +52,6 @@ app:
     email: ${INITIAL_ADMIN_EMAIL:admin@manojmobiles.com}
     password: ${INITIAL_ADMIN_PASSWORD:Admin@123}
     phone: ${INITIAL_ADMIN_PHONE:9999999999}
+
+  cloudinary:
+    url: ${CLOUDINARY_URL:}
