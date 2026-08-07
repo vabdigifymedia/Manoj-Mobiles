@@ -65,8 +65,26 @@ public class ProductService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
 
+        String baseSlug = request.getName().toLowerCase()
+                .trim()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+        if (baseSlug.isBlank()) {
+            baseSlug = "product";
+        }
+
+        String uniqueSlug = baseSlug;
+        int count = 1;
+        while (productRepository.existsBySlug(uniqueSlug)) {
+            uniqueSlug = baseSlug + "-" + count;
+            count++;
+        }
+
         Product product = Product.builder()
                 .name(request.getName())
+                .slug(uniqueSlug)
                 .description(request.getDescription())
                 .brand(brand)
                 .category(category)

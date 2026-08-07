@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 public interface ProductRepository extends JpaRepository<Product, UUID> {
     Optional<Product> findBySlug(String slug);
 
+    boolean existsBySlug(String slug);
+
     Page<Product> findByCategoryId(UUID categoryId, Pageable pageable);
 
     Page<Product> findByBrandId(UUID brandId, Pageable pageable);
