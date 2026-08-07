@@ -1,7 +1,6 @@
 package com.api.manojmobiles.entity;
 
-import com.api.manojmobiles.entity.enums.PaymentMethod;
-import com.api.manojmobiles.entity.enums.PaymentStatus;
+import com.api.manojmobiles.entity.enums.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;

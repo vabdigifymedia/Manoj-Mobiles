@@ -1,6 +1,6 @@
 package com.api.manojmobiles.entity;
 
-import com.api.manojmobiles.entity.enums.OrderStatus;
+import com.api.manojmobiles.entity.enums.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
