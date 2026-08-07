@@ -38,6 +38,14 @@ public class ReturnRequest {
 
     private LocalDateTime requestedAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String adminNote;
+
     @DecimalMin("0.0")
     private BigDecimal refundAmount;
+
+    @PrePersist
+    protected void onCreate() {
+        this.requestedAt = LocalDateTime.now();
+    }
 }

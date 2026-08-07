@@ -176,6 +176,69 @@ public class OrderService {
     }
 
     @Transactional
+    public OrderResponseDTO cancelOrder(String username, UUID orderId, com.api.manojmobiles.dto.order.CancelOrderRequestDTO request) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        User user = userRepository.findByEmail(username)
+                .orElseGet(() -> userRepository.findByPhone(username)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have access to this order");
+        }
+
+        if (order.getOrderStatus() != OrderStatus.PLACED && order.getOrderStatus() != OrderStatus.CONFIRMED) {
+            throw new BadRequestException("Order cannot be cancelled at this stage. Current status: " + order.getOrderStatus());
+        }
+
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        order.setUpdatedAt(LocalDateTime.now());
+        order = orderRepository.save(order);
+
+        // Restock inventory
+        for (OrderItem item : order.getOrderItems()) {
+            ProductVariant variant = productVariantRepository.findForUpdateById(item.getVariant().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Variant not found"));
+            
+            variant.setStockQty(variant.getStockQty() + item.getQty());
+            if (variant.getStockQty() > 0 && variant.getStockStatus() == com.api.manojmobiles.entity.enums.StockStatus.OUT_OF_STOCK) {
+                variant.setStockStatus(com.api.manojmobiles.entity.enums.StockStatus.IN_STOCK);
+            } else if (variant.getStockQty() > 5 && variant.getStockStatus() == com.api.manojmobiles.entity.enums.StockStatus.LIMITED_STOCK) {
+                variant.setStockStatus(com.api.manojmobiles.entity.enums.StockStatus.IN_STOCK);
+            }
+            productVariantRepository.save(variant);
+
+            InventoryLog logEntry = InventoryLog.builder()
+                    .variant(variant)
+                    .changeQty(item.getQty())
+                    .reason(com.api.manojmobiles.entity.enums.InventoryReason.RETURN)
+                    .build();
+            inventoryLogRepository.save(logEntry);
+        }
+
+        // Handle Payment refund logic
+        Payment payment = paymentRepository.findByOrderId(orderId).orElse(null);
+        if (payment != null && payment.getMethod() != PaymentMethod.COD && payment.getStatus() == PaymentStatus.SUCCESS) {
+            payment.setStatus(PaymentStatus.REFUNDED);
+            paymentRepository.save(payment);
+        }
+
+        OrderStatusHistory history = OrderStatusHistory.builder()
+                .order(order)
+                .status(OrderStatus.CANCELLED)
+                .changedAt(LocalDateTime.now())
+                .note("Cancelled by user. Reason: " + request.getReason())
+                .updatedBy(username)
+                .build();
+        statusHistoryRepository.save(history);
+
+        log.info("Order {} cancelled by user {}", order.getOrderNumber(), username);
+
+        return mapToDTO(order, order.getOrderItems(), payment, null);
+    }
+
+    @Transactional
     public OrderResponseDTO mockPayment(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));

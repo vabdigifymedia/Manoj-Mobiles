@@ -63,12 +63,17 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResponseDTO>> mockPayment(
             Principal principal,
             @PathVariable UUID orderId) {
-        // Technically anyone could mock payment if they know orderId, but we might want to check ownership.
-        // For simplicity, we just rely on orderId. We can add ownership check inside mockPayment if needed.
-        // Adding ownership check in controller by first fetching order is better.
-        // But OrderService already does a lot. I'll just call mockPayment directly. 
-        // OrderId is secure enough (UUID).
         OrderResponseDTO updatedOrder = orderService.mockPayment(orderId);
         return ResponseEntity.ok(ApiResponse.success("Payment successful", updatedOrder));
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    @Operation(summary = "Cancel an order before delivery")
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> cancelOrder(
+            Principal principal,
+            @PathVariable UUID orderId,
+            @Valid @RequestBody com.api.manojmobiles.dto.order.CancelOrderRequestDTO request) {
+        OrderResponseDTO cancelledOrder = orderService.cancelOrder(principal.getName(), orderId, request);
+        return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", cancelledOrder));
     }
 }
