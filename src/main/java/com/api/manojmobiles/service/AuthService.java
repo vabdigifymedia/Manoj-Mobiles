@@ -46,9 +46,7 @@ public class AuthService {
      * Delegates to OtpService which stores in Redis with configurable TTL.
      */
     public void sendOtp(String phone) {
-        // Verify phone exists (optional: remove this check to allow pre-registration OTP)
-        userRepository.findByPhone(phone)
-                .orElseThrow(() -> new ResourceNotFoundException("No account found with phone: " + phone));
+        // Allow pre-registration OTP by not checking if user exists
         otpService.generateOtp(phone);
     }
 
@@ -59,7 +57,18 @@ public class AuthService {
         otpService.verifyOtp(loginRequest.getPhone(), loginRequest.getOtp());
 
         User user = userRepository.findByPhone(loginRequest.getPhone())
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with phone: " + loginRequest.getPhone()));
+                .orElseGet(() -> {
+                    // Auto-register new customer
+                    User newUser = User.builder()
+                            .name("Customer")
+                            .phone(loginRequest.getPhone())
+                            .role(Role.CUSTOMER)
+                            .status(UserStatus.ACTIVE)
+                            .createdAt(LocalDateTime.now())
+                            .updatedAt(LocalDateTime.now())
+                            .build();
+                    return userRepository.save(newUser);
+                });
 
         String jwt = tokenProvider.generateToken(user.getPhone());
         String refreshToken = refreshTokenService.createRefreshToken(user.getId());
