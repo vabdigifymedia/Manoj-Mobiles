@@ -88,9 +88,9 @@ public class ProductService {
                 .description(request.getDescription())
                 .brand(brand)
                 .category(category)
-                .warrantyMonths(request.getWarrantyMonths())
-                .returnPolicyDays(request.getReturnPolicyDays())
-                .isReturnable(request.getIsReturnable())
+                .warrantyMonths(request.getWarrantyMonths() != null ? request.getWarrantyMonths() : 12)
+                .returnPolicyDays(request.getReturnPolicyDays() != null ? request.getReturnPolicyDays() : 7)
+                .isReturnable(request.getIsReturnable() != null ? request.getIsReturnable() : true)
                 .avgRating(BigDecimal.ZERO)
                 .totalReviews(0)
                 .build();
@@ -232,10 +232,10 @@ public class ProductService {
                 .mrp(request.getMrp())
                 .sellingPrice(request.getSellingPrice())
                 .discountPercent(discount)
-                .gstPercent(request.getGstPercent())
+                .gstPercent(request.getGstPercent() != null ? request.getGstPercent() : BigDecimal.ZERO)
                 .stockQty(request.getStockQty())
                 .stockStatus(stockStatus)
-                .codAvailable(request.getCodAvailable())
+                .codAvailable(request.getCodAvailable() != null ? request.getCodAvailable() : true)
                 .build();
 
         ProductVariant saved = variantRepository.save(variant);
