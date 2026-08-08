@@ -9,8 +9,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
 @RestController
 @RequestMapping("/api/admin/upload")
 @RequiredArgsConstructor
@@ -28,7 +26,8 @@ public class FileUploadController {
             String imageUrl = cloudinaryService.uploadImage(file, folder);
             return ResponseEntity.ok(ApiResponse.success("Image uploaded successfully", imageUrl));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(ApiResponse.error("Failed to upload image: " + e.getMessage()));
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.error("Failed to upload image: " + e.getMessage()));
         }
     }
 }
