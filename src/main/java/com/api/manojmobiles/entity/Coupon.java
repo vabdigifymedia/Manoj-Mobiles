@@ -47,5 +47,12 @@ public class Coupon {
     private LocalDate validTo;
 
     @Min(1)
-    private Integer usageLimit;
+    @Builder.Default
+    private Integer usageLimitPerUser = 1;
+
+    @Min(1)
+    private Integer totalUsageCap;
+
+    @Builder.Default
+    private Boolean isActive = true;
 }

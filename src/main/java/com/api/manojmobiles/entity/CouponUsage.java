@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "coupon_usage")
+@Table(name = "coupon_usage", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"coupon_id", "user_id"}, name = "uk_coupon_user")
+})
 @Getter
 @Setter
 @AllArgsConstructor

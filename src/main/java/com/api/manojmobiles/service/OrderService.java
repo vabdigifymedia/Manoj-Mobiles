@@ -46,6 +46,7 @@ public class OrderService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final CartService cartService;
+    private final CouponService couponService;
 
     @Transactional
     public OrderResponseDTO placeOrder(String username, PlaceOrderRequestDTO request) {
@@ -88,6 +89,8 @@ public class OrderService {
                 .updatedAt(LocalDateTime.now())
                 .deliveryCharge(BigDecimal.ZERO) // Free Delivery Rule
                 .discountAmount(BigDecimal.ZERO) // Coupon out of scope
+                .totalAmount(BigDecimal.ZERO)
+                .gstAmount(BigDecimal.ZERO)
                 .build();
         
         // 5. Generate Order Number
@@ -145,9 +148,22 @@ public class OrderService {
             orderItems.add(orderItemRepository.save(orderItem));
         }
 
-        order.setTotalAmount(subTotal);
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        Coupon appliedCoupon = null;
+        
+        if (request.getCouponCode() != null && !request.getCouponCode().trim().isEmpty()) {
+            appliedCoupon = couponService.getCouponEntityByCode(request.getCouponCode().trim());
+            discountAmount = couponService.validateAndCalculateDiscount(appliedCoupon, subTotal, user);
+        }
+
+        order.setDiscountAmount(discountAmount);
+        order.setTotalAmount(subTotal.subtract(discountAmount).max(BigDecimal.ZERO));
         order.setGstAmount(gstTotal);
         orderRepository.save(order);
+        
+        if (appliedCoupon != null) {
+            couponService.recordCouponUsage(appliedCoupon, user, order);
+        }
 
         // 7. Create Payment
         Payment payment = Payment.builder()

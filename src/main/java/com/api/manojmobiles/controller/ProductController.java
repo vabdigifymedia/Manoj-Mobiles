@@ -69,6 +69,14 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 
+    @PostMapping("/api/public/products/filter")
+    public ResponseEntity<ApiResponse<Page<ProductVariantResponseDTO>>> filterProducts(
+            @RequestBody com.api.manojmobiles.dto.product.ProductFilterRequestDTO filterRequest,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductVariantResponseDTO> variants = productService.filterProducts(filterRequest, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Products filtered successfully", variants));
+    }
+
     @GetMapping("/api/products/variants/{id}")
     public ResponseEntity<ApiResponse<ProductVariantResponseDTO>> getVariantById(@PathVariable UUID id) {
         ProductVariantResponseDTO variant = productService.getVariantById(id);

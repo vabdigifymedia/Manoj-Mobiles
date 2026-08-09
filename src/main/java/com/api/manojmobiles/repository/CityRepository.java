@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface CityRepository extends JpaRepository<City, UUID> {
     List<City> findByIsActiveTrue();
     Optional<City> findByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCaseAndStateIgnoreCase(String name, String state);
 }

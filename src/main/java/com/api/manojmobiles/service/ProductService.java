@@ -132,6 +132,11 @@ public class ProductService {
                 .map(this::mapToListDTO);
     }
 
+    public Page<com.api.manojmobiles.dto.product.ProductVariantResponseDTO> filterProducts(com.api.manojmobiles.dto.product.ProductFilterRequestDTO filter, Pageable pageable) {
+        org.springframework.data.jpa.domain.Specification<ProductVariant> spec = com.api.manojmobiles.specification.ProductSpecification.getProductsByFilter(filter);
+        return variantRepository.findAll(spec, pageable).map(this::mapVariantToDTO);
+    }
+
     @Transactional
     @CacheEvict(value = "products", key = "'product:' + #id")
     public ProductResponseDTO updateProduct(UUID id, ProductRequestDTO request) {

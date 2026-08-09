@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface ServiceablePincodeRepository extends JpaRepository<ServiceablePincode, UUID> {
     Optional<ServiceablePincode> findByPincode(String pincode);
     List<ServiceablePincode> findByCityId(UUID cityId);
+    boolean existsByPincode(String pincode);
 }

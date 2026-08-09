@@ -11,6 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface CouponRepository extends JpaRepository<Coupon, UUID> {
-    Optional<Coupon> findByCode(String code);
-    List<Coupon> findByValidToAfter(LocalDate date);
+    Optional<Coupon> findByCodeIgnoreCase(String code);
+    boolean existsByCodeIgnoreCase(String code);
+    List<Coupon> findByIsActiveTrueAndValidFromLessThanEqualAndValidToGreaterThanEqual(LocalDate date1, LocalDate date2);
 }

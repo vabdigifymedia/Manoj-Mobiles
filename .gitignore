@@ -32,3 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 .env
+test_phase7.py
+test_results.txt
+test_phase8.py

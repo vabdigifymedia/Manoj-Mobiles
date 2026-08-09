@@ -20,4 +20,6 @@ public class PlaceOrderRequestDTO {
 
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
+
+    private String couponCode;
 }

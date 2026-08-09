@@ -3,10 +3,17 @@ package com.api.manojmobiles.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+import lombok.*;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "compare_list")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class CompareList {
 
     @Id
