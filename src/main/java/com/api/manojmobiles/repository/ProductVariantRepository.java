@@ -18,4 +18,6 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @org.springframework.data.jpa.repository.Query("SELECT v FROM ProductVariant v WHERE v.id = :id")
     Optional<ProductVariant> findForUpdateById(@org.springframework.data.repository.query.Param("id") UUID id);
+
+    long countByStockStatusIn(java.util.Collection<StockStatus> statuses);
 }
