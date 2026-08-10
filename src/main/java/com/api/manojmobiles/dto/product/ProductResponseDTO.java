@@ -12,7 +12,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ProductResponseDTO {
-
     private UUID id;
     private String name;
     private UUID brandId;
@@ -28,4 +27,5 @@ public class ProductResponseDTO {
     private Integer totalReviews;
     private String slug;
     private List<ProductVariantResponseDTO> variants;
+    private List<HighlightResponseDTO> highlights;
 }

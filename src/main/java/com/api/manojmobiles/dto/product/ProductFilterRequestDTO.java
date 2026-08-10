@@ -20,4 +20,5 @@ public class ProductFilterRequestDTO {
     private BigDecimal maxPrice;
     private Double minRating;
     private Boolean inStockOnly;
+    private java.util.List<String> colors;
 }

@@ -34,6 +34,8 @@ public class ProductVariant {
     @Column(unique = true)
     private String sku;
 
+    private String color;
+
     @NotNull
     @DecimalMin("0.0")
     private BigDecimal mrp;

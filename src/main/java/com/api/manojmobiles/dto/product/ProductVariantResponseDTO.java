@@ -17,6 +17,7 @@ public class ProductVariantResponseDTO {
     private UUID id;
     private String variantName;
     private String sku;
+    private String color;
     private BigDecimal mrp;
     private BigDecimal sellingPrice;
     private Integer discountPercent;

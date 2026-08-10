@@ -3,6 +3,7 @@ package com.api.manojmobiles.specification;
 import com.api.manojmobiles.dto.product.ProductFilterRequestDTO;
 import com.api.manojmobiles.entity.ProductVariant;
 import com.api.manojmobiles.entity.enums.ProductStatus;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
@@ -50,6 +51,14 @@ public class ProductSpecification {
 
             if (Boolean.TRUE.equals(filter.getInStockOnly())) {
                 predicates.add(criteriaBuilder.greaterThan(root.get("stockQty"), 0));
+            }
+
+            if (filter.getColors() != null && !filter.getColors().isEmpty()) {
+                CriteriaBuilder.In<String> inClause = criteriaBuilder.in(criteriaBuilder.lower(root.get("color")));
+                for (String color : filter.getColors()) {
+                    inClause.value(color.toLowerCase());
+                }
+                predicates.add(inClause);
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

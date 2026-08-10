@@ -195,4 +195,39 @@ public class ProductController {
         productService.deleteSpecification(id);
         return ResponseEntity.ok(ApiResponse.success("Specification deleted successfully", null));
     }
+
+    // --- Highlights API ---
+    @PostMapping("/api/products/{productId}/highlights")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<com.api.manojmobiles.dto.product.HighlightResponseDTO>> addHighlight(
+            @PathVariable UUID productId,
+            @Valid @RequestBody com.api.manojmobiles.dto.product.CreateHighlightRequestDTO request) {
+        com.api.manojmobiles.dto.product.HighlightResponseDTO highlight = productService.addHighlight(productId, request);
+        return ResponseEntity.ok(ApiResponse.success("Highlight added successfully", highlight));
+    }
+
+    @PutMapping("/api/products/highlights/{highlightId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<com.api.manojmobiles.dto.product.HighlightResponseDTO>> updateHighlight(
+            @PathVariable UUID highlightId,
+            @Valid @RequestBody com.api.manojmobiles.dto.product.UpdateHighlightRequestDTO request) {
+        com.api.manojmobiles.dto.product.HighlightResponseDTO highlight = productService.updateHighlight(highlightId, request);
+        return ResponseEntity.ok(ApiResponse.success("Highlight updated successfully", highlight));
+    }
+
+    @DeleteMapping("/api/products/highlights/{highlightId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteHighlight(@PathVariable UUID highlightId) {
+        productService.deleteHighlight(highlightId);
+        return ResponseEntity.ok(ApiResponse.success("Highlight deleted successfully", null));
+    }
+
+    @PutMapping("/api/products/{productId}/highlights/reorder")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> reorderHighlights(
+            @PathVariable UUID productId,
+            @RequestBody List<UUID> orderedHighlightIds) {
+        productService.reorderHighlights(productId, orderedHighlightIds);
+        return ResponseEntity.ok(ApiResponse.success("Highlights reordered successfully", null));
+    }
 }

@@ -21,6 +21,7 @@ import com.api.manojmobiles.repository.ProductImageRepository;
 import com.api.manojmobiles.repository.ProductRepository;
 import com.api.manojmobiles.repository.ProductSpecificationRepository;
 import com.api.manojmobiles.repository.ProductVariantRepository;
+import com.api.manojmobiles.repository.ProductHighlightRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -54,6 +55,7 @@ public class ProductService {
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final InventoryLogRepository inventoryLogRepository;
+    private final ProductHighlightRepository productHighlightRepository;
 
 
 
@@ -290,6 +292,7 @@ public class ProductService {
                 .product(product)
                 .variantName(request.getVariantName())
                 .sku(request.getSku())
+                .color(request.getColor())
                 .mrp(request.getMrp())
                 .sellingPrice(request.getSellingPrice())
                 .discountPercent(discount)
@@ -316,6 +319,7 @@ public class ProductService {
             }
             variant.setSku(request.getSku());
         }
+        if (request.getColor() != null) variant.setColor(request.getColor());
         if (request.getGstPercent() != null) variant.setGstPercent(request.getGstPercent());
         if (request.getCodAvailable() != null) variant.setCodAvailable(request.getCodAvailable());
 
@@ -471,7 +475,21 @@ public class ProductService {
                 .totalReviews(product.getTotalReviews())
                 .slug(product.getSlug())
                 .variants(mapVariants(product.getVariants()))
+                .highlights(mapHighlights(product.getHighlights()))
                 .build();
+    }
+
+    private List<com.api.manojmobiles.dto.product.HighlightResponseDTO> mapHighlights(List<com.api.manojmobiles.entity.ProductHighlight> highlights) {
+        if (highlights == null) return java.util.Collections.emptyList();
+        return highlights.stream()
+                .sorted(java.util.Comparator.comparingInt(com.api.manojmobiles.entity.ProductHighlight::getDisplayOrder))
+                .map(h -> com.api.manojmobiles.dto.product.HighlightResponseDTO.builder()
+                        .id(h.getId())
+                        .iconName(h.getIconName())
+                        .text(h.getText())
+                        .displayOrder(h.getDisplayOrder())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private List<ProductVariantResponseDTO> mapVariants(List<ProductVariant> variants) {
@@ -486,6 +504,7 @@ public class ProductService {
                 .id(v.getId())
                 .variantName(v.getVariantName())
                 .sku(v.getSku())
+                .color(v.getColor())
                 .mrp(v.getMrp())
                 .sellingPrice(v.getSellingPrice())
                 .discountPercent(v.getDiscountPercent())
@@ -541,5 +560,52 @@ public class ProductService {
                 .avgRating(product.getAvgRating())
                 .totalReviews(product.getTotalReviews())
                 .build();
+    }
+
+    @Transactional
+    public com.api.manojmobiles.dto.product.HighlightResponseDTO addHighlight(UUID productId, com.api.manojmobiles.dto.product.CreateHighlightRequestDTO request) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        if (productHighlightRepository.countByProductId(productId) >= 6) {
+            throw new com.api.manojmobiles.exception.BadRequestException("Maximum of 6 highlights allowed per product.");
+        }
+        com.api.manojmobiles.entity.ProductHighlight highlight = com.api.manojmobiles.entity.ProductHighlight.builder()
+                .product(product)
+                .iconName(request.getIconName())
+                .text(request.getText())
+                .displayOrder(request.getDisplayOrder())
+                .build();
+        return mapHighlights(java.util.Collections.singletonList(productHighlightRepository.save(highlight))).get(0);
+    }
+
+    @Transactional
+    public com.api.manojmobiles.dto.product.HighlightResponseDTO updateHighlight(UUID highlightId, com.api.manojmobiles.dto.product.UpdateHighlightRequestDTO request) {
+        com.api.manojmobiles.entity.ProductHighlight highlight = productHighlightRepository.findById(highlightId)
+                .orElseThrow(() -> new ResourceNotFoundException("Highlight not found with id: " + highlightId));
+        if (request.getIconName() != null) highlight.setIconName(request.getIconName());
+        if (request.getText() != null) highlight.setText(request.getText());
+        return mapHighlights(java.util.Collections.singletonList(productHighlightRepository.save(highlight))).get(0);
+    }
+
+    @Transactional
+    public void deleteHighlight(UUID highlightId) {
+        if (!productHighlightRepository.existsById(highlightId)) {
+            throw new ResourceNotFoundException("Highlight not found with id: " + highlightId);
+        }
+        productHighlightRepository.deleteById(highlightId);
+    }
+
+    @Transactional
+    public void reorderHighlights(UUID productId, List<UUID> orderedHighlightIds) {
+        List<com.api.manojmobiles.entity.ProductHighlight> highlights = productHighlightRepository.findByProductIdOrderByDisplayOrderAsc(productId);
+        for (int i = 0; i < orderedHighlightIds.size(); i++) {
+             UUID id = orderedHighlightIds.get(i);
+             for(com.api.manojmobiles.entity.ProductHighlight h : highlights) {
+                 if(h.getId().equals(id)) {
+                     h.setDisplayOrder(i);
+                 }
+             }
+        }
+        productHighlightRepository.saveAll(highlights);
     }
 }

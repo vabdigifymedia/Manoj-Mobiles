@@ -24,10 +24,12 @@ public class ProductVariantRequestDTO {
     @NotBlank
     private String variantName;
 
-    @NotBlank
+    @NotBlank(message = "SKU is required")
     private String sku;
 
-    @NotNull
+    private String color;
+
+    @NotNull(message = "MRP is required")
     @DecimalMin("0.0")
     private BigDecimal mrp;
 
