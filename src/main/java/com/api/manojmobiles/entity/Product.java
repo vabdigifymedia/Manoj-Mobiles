@@ -61,7 +61,7 @@ public class Product {
     @Builder.Default
     private ProductStatus status = ProductStatus.ACTIVE;
 
-    @Column(unique = true)
+    @Column(columnDefinition = "TEXT", unique = true)
     private String slug;
 
     @DecimalMin("0.0")
