@@ -75,27 +75,42 @@ public class ProductService {
             baseSlug = "product";
         }
 
-        String uniqueSlug = baseSlug;
-        int count = 1;
-        while (productRepository.existsBySlug(uniqueSlug)) {
-            uniqueSlug = baseSlug + "-" + count;
-            count++;
+        Product saved = null;
+        int maxRetries = 5;
+        for (int i = 0; i < maxRetries; i++) {
+            String uniqueSlug = baseSlug;
+            int count = 1;
+            while (productRepository.existsBySlug(uniqueSlug)) {
+                uniqueSlug = baseSlug + "-" + count;
+                count++;
+            }
+
+            Product product = Product.builder()
+                    .name(request.getName())
+                    .slug(uniqueSlug)
+                    .description(request.getDescription())
+                    .brand(brand)
+                    .category(category)
+                    .warrantyMonths(request.getWarrantyMonths() != null ? request.getWarrantyMonths() : 12)
+                    .returnPolicyDays(request.getReturnPolicyDays() != null ? request.getReturnPolicyDays() : 7)
+                    .isReturnable(request.getIsReturnable() != null ? request.getIsReturnable() : true)
+                    .avgRating(BigDecimal.ZERO)
+                    .totalReviews(0)
+                    .build();
+
+            try {
+                saved = productRepository.saveAndFlush(product);
+                break; // Success
+            } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+                log.warn("Slug collision during createProduct for slug: {}. Retrying...", uniqueSlug);
+                if (i == maxRetries - 1) {
+                    throw new com.api.manojmobiles.exception.BadRequestException("Failed to generate a unique product slug after multiple attempts. Please try again.");
+                }
+            }
         }
-
-        Product product = Product.builder()
-                .name(request.getName())
-                .slug(uniqueSlug)
-                .description(request.getDescription())
-                .brand(brand)
-                .category(category)
-                .warrantyMonths(request.getWarrantyMonths() != null ? request.getWarrantyMonths() : 12)
-                .returnPolicyDays(request.getReturnPolicyDays() != null ? request.getReturnPolicyDays() : 7)
-                .isReturnable(request.getIsReturnable() != null ? request.getIsReturnable() : true)
-                .avgRating(BigDecimal.ZERO)
-                .totalReviews(0)
-                .build();
-
-        Product saved = productRepository.save(product);
+        if (saved == null) {
+            throw new IllegalStateException("Failed to save product due to an unexpected error.");
+        }
         log.info("Product created: {} (id={})", saved.getName(), saved.getId());
         return mapToResponseDTO(saved);
     }

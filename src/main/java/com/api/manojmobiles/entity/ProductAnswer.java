@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -30,7 +31,12 @@ public class ProductAnswer {
     @JoinColumn(name = "user_id") private User user;
 
     @NotBlank
-    private String answer;
+    @Column(columnDefinition = "TEXT")
+    private String answerText;
 
+    @Builder.Default
+    private Boolean isSellerAnswer = false;
+
+    @CreationTimestamp
     private LocalDateTime createdAt;
 }

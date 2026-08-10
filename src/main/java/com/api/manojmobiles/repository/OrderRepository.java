@@ -35,4 +35,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     // Recent 5 orders
     List<Order> findTop5ByOrderByPlacedAtDesc();
+
+    boolean existsByUserIdAndOrderItemsVariantProductIdAndOrderStatus(UUID userId, UUID productId, OrderStatus status);
 }

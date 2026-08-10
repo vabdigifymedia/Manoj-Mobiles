@@ -64,7 +64,7 @@ public class WishlistService {
     @Transactional
     public void moveToCart(String username, UUID variantId) {
         User user = getUser(username);
-        ProductVariant variant = productVariantRepository.findById(variantId)
+        productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found"));
 
         AddToCartRequestDTO cartRequest = new AddToCartRequestDTO();

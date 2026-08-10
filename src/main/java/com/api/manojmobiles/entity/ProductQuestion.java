@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,10 +33,15 @@ public class ProductQuestion {
     @JoinColumn(name = "user_id") private User user;
 
     @NotBlank
-    private String question;
+    @Column(columnDefinition = "TEXT")
+    private String questionText;
 
+    @Builder.Default
+    private Boolean isApproved = true;
+
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductAnswer> answers;
 }

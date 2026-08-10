@@ -6,11 +6,16 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "review")
+@Table(name = "review", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"product_id", "user_id"})
+})
 @Getter
 @Setter
 @AllArgsConstructor
@@ -36,8 +41,17 @@ public class Review {
     @Min(1) @Max(5)
     private Integer rating;
 
+    private String title;
+
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Builder.Default
+    private Boolean isVerifiedPurchase = true;
+
+    @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
