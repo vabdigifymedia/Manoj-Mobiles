@@ -34,4 +34,12 @@ public class ProductRequestDTO {
     private Integer returnPolicyDays;
 
     private Boolean isReturnable;
+
+    private String slug;
+
+    private String metaTitle;
+
+    private String metaDescription;
+
+    private String metaKeywords;
 }

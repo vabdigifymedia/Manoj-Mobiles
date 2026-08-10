@@ -65,24 +65,32 @@ public class ProductService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
 
-        String baseSlug = request.getName().toLowerCase()
-                .trim()
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .replaceAll("\\s+", "-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-        if (baseSlug.isBlank()) {
-            baseSlug = "product";
-        }
+        String uniqueSlug = "";
+        if (request.getSlug() != null && !request.getSlug().trim().isEmpty()) {
+            uniqueSlug = request.getSlug().trim();
+            if (productRepository.existsBySlugIgnoreCase(uniqueSlug)) {
+                throw new com.api.manojmobiles.exception.BadRequestException("Slug '" + uniqueSlug + "' is already in use. Please choose a unique slug.");
+            }
+        } else {
+            String baseSlug = request.getName().toLowerCase()
+                    .trim()
+                    .replaceAll("[^a-z0-9\\s-]", "")
+                    .replaceAll("\\s+", "-")
+                    .replaceAll("-+", "-")
+                    .replaceAll("^-|-$", "");
+            if (baseSlug.isBlank()) {
+                baseSlug = "product";
+            }
 
-        String uniqueSlug = baseSlug;
-        int count = 1;
-        while (productRepository.existsBySlugIgnoreCase(uniqueSlug)) {
-            uniqueSlug = baseSlug + "-" + count;
-            count++;
-            if (count > 50) {
-                uniqueSlug = baseSlug + "-" + System.currentTimeMillis();
-                break;
+            uniqueSlug = baseSlug;
+            int count = 1;
+            while (productRepository.existsBySlugIgnoreCase(uniqueSlug)) {
+                uniqueSlug = baseSlug + "-" + count;
+                count++;
+                if (count > 50) {
+                    uniqueSlug = baseSlug + "-" + System.currentTimeMillis();
+                    break;
+                }
             }
         }
 
@@ -95,6 +103,9 @@ public class ProductService {
                 .warrantyMonths(request.getWarrantyMonths() != null ? request.getWarrantyMonths() : 12)
                 .returnPolicyDays(request.getReturnPolicyDays() != null ? request.getReturnPolicyDays() : 7)
                 .isReturnable(request.getIsReturnable() != null ? request.getIsReturnable() : true)
+                .metaTitle(request.getMetaTitle())
+                .metaDescription(request.getMetaDescription())
+                .metaKeywords(request.getMetaKeywords())
                 .avgRating(BigDecimal.ZERO)
                 .totalReviews(0)
                 .build();
@@ -153,6 +164,20 @@ public class ProductService {
         if (request.getReturnPolicyDays() != null) product.setReturnPolicyDays(request.getReturnPolicyDays());
         if (request.getIsReturnable() != null) product.setIsReturnable(request.getIsReturnable());
 
+        if (request.getSlug() != null && !request.getSlug().trim().isEmpty()) {
+            String newSlug = request.getSlug().trim();
+            if (!newSlug.equalsIgnoreCase(product.getSlug())) {
+                if (productRepository.existsBySlugIgnoreCase(newSlug)) {
+                    throw new com.api.manojmobiles.exception.BadRequestException("Slug '" + newSlug + "' is already in use. Please choose a unique slug.");
+                }
+                product.setSlug(newSlug);
+            }
+        }
+
+        if (request.getMetaTitle() != null) product.setMetaTitle(request.getMetaTitle());
+        if (request.getMetaDescription() != null) product.setMetaDescription(request.getMetaDescription());
+        if (request.getMetaKeywords() != null) product.setMetaKeywords(request.getMetaKeywords());
+
         if (request.getBrandId() != null) {
             Brand brand = brandRepository.findById(request.getBrandId())
                     .orElseThrow(() -> new ResourceNotFoundException("Brand not found with id: " + request.getBrandId()));
@@ -167,6 +192,29 @@ public class ProductService {
         Product saved = productRepository.save(product);
         log.info("Product updated: {} (id={})", saved.getName(), saved.getId());
         return mapToResponseDTO(saved);
+    }
+
+    @Transactional
+    @CacheEvict(value = "products", key = "'product:' + #productId")
+    public void updateProductStatus(UUID productId, com.api.manojmobiles.entity.enums.ProductStatus status) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+
+        if (status == com.api.manojmobiles.entity.enums.ProductStatus.ACTIVE) {
+            // Validate all variants have images before publishing
+            List<ProductVariant> variants = product.getVariants();
+            if (variants == null || variants.isEmpty()) {
+                throw new com.api.manojmobiles.exception.BadRequestException("Cannot publish product without any variants.");
+            }
+            for (ProductVariant v : variants) {
+                if (v.getImages() == null || v.getImages().isEmpty()) {
+                    throw new com.api.manojmobiles.exception.BadRequestException("Cannot publish product: Variant '" + v.getVariantName() + "' has no images.");
+                }
+            }
+        }
+        product.setStatus(status);
+        productRepository.save(product);
+        log.info("Product status updated: id={} status={}", productId, status);
     }
 
     @Transactional
@@ -320,11 +368,39 @@ public class ProductService {
 
     @Transactional
     public void deleteImage(UUID imageId) {
-        if (!imageRepository.existsById(imageId)) {
-            throw new ResourceNotFoundException("Image not found with id: " + imageId);
-        }
-        imageRepository.deleteById(imageId);
+        ProductImage image = imageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
+
+        UUID variantId = image.getVariant().getId();
+        boolean wasPrimary = image.getIsPrimary() != null ? image.getIsPrimary() : false;
+
+        imageRepository.delete(image);
         log.info("Image deleted: id={}", imageId);
+
+        if (wasPrimary) {
+            List<ProductImage> remainingImages = imageRepository.findByVariantId(variantId);
+            if (!remainingImages.isEmpty()) {
+                ProductImage newPrimary = remainingImages.get(0);
+                newPrimary.setIsPrimary(true);
+                imageRepository.save(newPrimary);
+                log.info("Auto-reassigned primary image to {} for variant {}", newPrimary.getId(), variantId);
+            }
+        }
+    }
+
+    @Transactional
+    public void setPrimaryImage(UUID imageId) {
+        ProductImage image = imageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
+
+        UUID variantId = image.getVariant().getId();
+
+        List<ProductImage> allImages = imageRepository.findByVariantId(variantId);
+        for (ProductImage img : allImages) {
+            img.setIsPrimary(img.getId().equals(imageId));
+            imageRepository.save(img);
+        }
+        log.info("Primary image set to {} for variant {}", imageId, variantId);
     }
 
 
@@ -333,6 +409,9 @@ public class ProductService {
     public void addVariantSpecifications(UUID variantId, List<ProductSpecificationRequestDTO> specs) {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
+
+        List<ProductSpecification> existingSpecs = specRepository.findByVariantId(variantId);
+        specRepository.deleteAll(existingSpecs);
 
         for (ProductSpecificationRequestDTO spec : specs) {
             ProductSpecification entity = ProductSpecification.builder()

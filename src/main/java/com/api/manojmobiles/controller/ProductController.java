@@ -102,6 +102,15 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Product updated successfully", updated));
     }
 
+    @PutMapping("/api/products/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> updateProductStatus(
+            @PathVariable UUID id,
+            @RequestParam com.api.manojmobiles.entity.enums.ProductStatus status) {
+        productService.updateProductStatus(id, status);
+        return ResponseEntity.ok(ApiResponse.success("Product status updated successfully", null));
+    }
+
     @DeleteMapping("/api/products/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable UUID id) {
@@ -160,6 +169,13 @@ public class ProductController {
     public ResponseEntity<ApiResponse<Void>> deleteImage(@PathVariable UUID id) {
         productService.deleteImage(id);
         return ResponseEntity.ok(ApiResponse.success("Image deleted successfully", null));
+    }
+
+    @PutMapping("/api/products/images/{imageId}/primary")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> setPrimaryImage(@PathVariable UUID imageId) {
+        productService.setPrimaryImage(imageId);
+        return ResponseEntity.ok(ApiResponse.success("Primary image set successfully", null));
     }
 
 
