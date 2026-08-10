@@ -77,9 +77,13 @@ public class ProductService {
 
         String uniqueSlug = baseSlug;
         int count = 1;
-        while (productRepository.existsBySlug(uniqueSlug)) {
+        while (productRepository.existsBySlugIgnoreCase(uniqueSlug)) {
             uniqueSlug = baseSlug + "-" + count;
             count++;
+            if (count > 50) {
+                uniqueSlug = baseSlug + "-" + System.currentTimeMillis();
+                break;
+            }
         }
 
         Product product = Product.builder()
