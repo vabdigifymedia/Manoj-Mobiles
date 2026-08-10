@@ -67,7 +67,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        return new ResponseEntity<>(ApiResponse.error("Database constraint violation or duplicate entry"), HttpStatus.CONFLICT);
+        ex.printStackTrace();
+        return new ResponseEntity<>(ApiResponse.error("Database constraint violation or duplicate entry: " + ex.getMessage()), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
