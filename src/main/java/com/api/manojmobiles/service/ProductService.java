@@ -227,6 +227,10 @@ public class ProductService {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + request.getProductId()));
 
+        if (request.getSku() != null && variantRepository.existsBySku(request.getSku())) {
+            throw new com.api.manojmobiles.exception.BadRequestException("Variant SKU '" + request.getSku() + "' already exists. Please enter a unique SKU.");
+        }
+
         int discount = calculateDiscountPercent(request.getMrp(), request.getSellingPrice());
         StockStatus stockStatus = determineStockStatus(request.getStockQty());
 
@@ -254,7 +258,12 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
 
         if (request.getVariantName() != null) variant.setVariantName(request.getVariantName());
-        if (request.getSku() != null) variant.setSku(request.getSku());
+        if (request.getSku() != null) {
+            if (!request.getSku().equalsIgnoreCase(variant.getSku()) && variantRepository.existsBySku(request.getSku())) {
+                throw new com.api.manojmobiles.exception.BadRequestException("Variant SKU '" + request.getSku() + "' already exists. Please enter a unique SKU.");
+            }
+            variant.setSku(request.getSku());
+        }
         if (request.getGstPercent() != null) variant.setGstPercent(request.getGstPercent());
         if (request.getCodAvailable() != null) variant.setCodAvailable(request.getCodAvailable());
 
