@@ -26,6 +26,7 @@ public class ProductImage {
     private ProductVariant variant;
 
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     private String url;
 
     private String altText;

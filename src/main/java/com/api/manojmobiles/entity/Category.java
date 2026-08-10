@@ -37,13 +37,19 @@ public class Category {
     @Column(unique = true)
     private String slug;
 
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
     private String metaTitle;
+
+    @Column(columnDefinition = "TEXT")
     private String metaDescription;
+
+    @Column(columnDefinition = "TEXT")
     private String metaKeywords;
 
     @PrePersist

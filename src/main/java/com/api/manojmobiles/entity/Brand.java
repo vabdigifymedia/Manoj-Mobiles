@@ -22,6 +22,7 @@ public class Brand {
     @NotBlank
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String logo_url;
 
     @Column(columnDefinition = "TEXT")
@@ -30,8 +31,13 @@ public class Brand {
     @Column(unique = true)
     private String slug;
 
+    @Column(columnDefinition = "TEXT")
     private String metaTitle;
+
+    @Column(columnDefinition = "TEXT")
     private String metaDescription;
+
+    @Column(columnDefinition = "TEXT")
     private String metaKeywords;
 
     @PrePersist

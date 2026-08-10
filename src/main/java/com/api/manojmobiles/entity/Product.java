@@ -30,6 +30,7 @@ public class Product {
     @NotBlank
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -65,9 +66,13 @@ public class Product {
     @Min(0)
     private Integer totalReviews;
 
+    @Column(columnDefinition = "TEXT")
     private String metaTitle;
 
+    @Column(columnDefinition = "TEXT")
     private String metaDescription;
+
+    @Column(columnDefinition = "TEXT")
     private String metaKeywords;
 
     @CreationTimestamp
