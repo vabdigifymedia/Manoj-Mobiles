@@ -31,6 +31,7 @@ public class ProductHighlight {
     private AllowedIcon iconName;
 
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     private String text;
 
     @NotNull

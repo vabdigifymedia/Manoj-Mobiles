@@ -29,6 +29,7 @@ public class ProductImage {
     @Column(columnDefinition = "TEXT")
     private String url;
 
+    @Column(columnDefinition = "TEXT")
     private String altText;
     private Boolean isPrimary;
 }

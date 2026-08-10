@@ -83,6 +83,9 @@ public class ProductService {
             if (baseSlug.isBlank()) {
                 baseSlug = "product";
             }
+            if (baseSlug.length() > 200) {
+                baseSlug = baseSlug.substring(0, 200);
+            }
 
             uniqueSlug = baseSlug;
             int count = 1;

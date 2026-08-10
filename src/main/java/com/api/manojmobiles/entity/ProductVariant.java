@@ -28,12 +28,14 @@ public class ProductVariant {
     private Product product;
 
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     private String variantName;
 
     @NotBlank
     @Column(unique = true)
     private String sku;
 
+    @Column(columnDefinition = "TEXT")
     private String color;
 
     @NotNull

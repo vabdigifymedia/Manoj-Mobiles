@@ -26,11 +26,14 @@ public class ProductSpecification {
     private ProductVariant variant;
 
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     private String specGroup;
 
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     private String specKey;
 
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     private String specValue;
 }

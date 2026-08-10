@@ -29,6 +29,7 @@ public class Product {
     private UUID id;
 
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     private String name;
 
     @Column(columnDefinition = "TEXT")
@@ -86,12 +87,15 @@ public class Product {
     @PreUpdate
     public void autoGenerateSlug() {
         if (this.name != null && (this.slug == null || this.slug.isBlank())) {
-            this.slug = this.name.toLowerCase()
+            String base = this.name.toLowerCase()
                     .trim()
                     .replaceAll("[^a-z0-9\\s-]", "")
                     .replaceAll("\\s+", "-")
                     .replaceAll("-+", "-")
                     .replaceAll("^-|-$", "");
+            if (base.isBlank()) base = "product";
+            if (base.length() > 200) base = base.substring(0, 200);
+            this.slug = base;
         }
     }
 }
