@@ -58,6 +58,7 @@ public class Product {
     private Boolean isReturnable;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "TEXT")
     @Builder.Default
     private ProductStatus status = ProductStatus.ACTIVE;
 
