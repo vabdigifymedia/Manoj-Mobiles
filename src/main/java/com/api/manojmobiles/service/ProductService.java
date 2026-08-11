@@ -1,5 +1,7 @@
 package com.api.manojmobiles.service;
 
+import com.api.manojmobiles.dto.product.ImageResponseDTO;
+import com.api.manojmobiles.dto.product.ProductFilterRequestDTO;
 import com.api.manojmobiles.dto.product.ProductListResponseDTO;
 import com.api.manojmobiles.dto.product.ProductRequestDTO;
 import com.api.manojmobiles.dto.product.ProductResponseDTO;
@@ -546,6 +548,13 @@ public class ProductService {
                 .codAvailable(v.getCodAvailable())
                 .imageUrls(v.getImages() != null
                         ? v.getImages().stream().map(img -> img.getUrl()).collect(Collectors.toList())
+                        : Collections.emptyList())
+                .images(v.getImages() != null
+                        ? v.getImages().stream().map(img -> ImageResponseDTO.builder()
+                                .id(img.getId())
+                                .url(img.getUrl())
+                                .isPrimary(img.getIsPrimary())
+                                .build()).collect(Collectors.toList())
                         : Collections.emptyList())
                 .specifications(v.getSpecifications() != null
                         ? v.getSpecifications().stream().map(spec -> ProductSpecificationResponseDTO.builder()

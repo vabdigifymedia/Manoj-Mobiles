@@ -26,5 +26,6 @@ public class ProductVariantResponseDTO {
     private StockStatus stockStatus;
     private Boolean codAvailable;
     private List<String> imageUrls;
+    private List<ImageResponseDTO> images;
     private List<ProductSpecificationResponseDTO> specifications;
 }
