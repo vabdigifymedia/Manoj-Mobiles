@@ -48,9 +48,14 @@ public class RedisConfig implements CachingConfigurer {
      * for safe polymorphic deserialization.
      */
     private RedisSerializer<Object> jsonRedisSerializer() {
-        return GenericJacksonJsonRedisSerializer.builder()
-                .customize(builder -> builder.findAndAddModules())
-                .build();
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        mapper.findAndRegisterModules();
+        mapper.activateDefaultTyping(
+                mapper.getPolymorphicTypeValidator(),
+                com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.NON_FINAL,
+                com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
+        );
+        return new org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer(mapper);
     }
 
     /**
