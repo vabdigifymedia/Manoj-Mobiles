@@ -289,7 +289,7 @@ public class ProductService {
     }
 
     @Transactional
-    @CacheEvict(value = "products", key = "'product:' + #request.productId")
+    @CacheEvict(value = "products", allEntries = true)
     public ProductVariantResponseDTO createVariant(ProductVariantRequestDTO request) {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + request.getProductId()));
@@ -321,6 +321,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductVariantResponseDTO updateVariant(UUID variantId, ProductVariantRequestDTO request) {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
@@ -355,6 +356,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void deleteVariant(UUID variantId) {
         if (!variantRepository.existsById(variantId)) {
             throw new ResourceNotFoundException("Variant not found with id: " + variantId);
@@ -375,6 +377,7 @@ public class ProductService {
 
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void addVariantImages(UUID variantId, List<String> imageUrls) {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
@@ -393,6 +396,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void deleteImage(UUID imageId) {
         ProductImage image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
@@ -415,6 +419,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void setPrimaryImage(UUID imageId) {
         ProductImage image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
@@ -432,6 +437,7 @@ public class ProductService {
 
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void addVariantSpecifications(UUID variantId, List<ProductSpecificationRequestDTO> specs) {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
@@ -452,6 +458,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void deleteSpecification(UUID specId) {
         if (!specRepository.existsById(specId)) {
             throw new ResourceNotFoundException("Specification not found with id: " + specId);
