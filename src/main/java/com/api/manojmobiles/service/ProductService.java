@@ -423,14 +423,14 @@ public class ProductService {
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public void deleteVariantImageUrl(UUID variantId, String imageUrl) {
-        ProductVariant variant = variantRepository.findById(variantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Variant not found"));
-        
-        if (variant.getImageUrls() != null && variant.getImageUrls().contains(imageUrl)) {
-            variant.getImageUrls().remove(imageUrl);
-            variantRepository.save(variant);
-            log.info("Removed legacy image URL from variant: {}", variantId);
-        }
+        List<ProductImage> images = imageRepository.findByVariantId(variantId);
+        images.stream()
+                .filter(img -> img.getUrl().equals(imageUrl))
+                .findFirst()
+                .ifPresent(img -> {
+                    deleteImage(img.getId());
+                    log.info("Removed legacy image URL from variant: {}", variantId);
+                });
     }
 
     @Transactional
