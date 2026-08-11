@@ -228,6 +228,16 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
+        // Clean up all related child tables referencing product or its variants
+        productRepository.deleteInventoryLogsByProductId(id);
+        productRepository.deleteProductQuestionsByProductId(id);
+        productRepository.deleteReviewsByProductId(id);
+        productRepository.deleteWishlistByProductId(id);
+        productRepository.deleteCartItemsByProductId(id);
+        productRepository.deleteCompareListByProductId(id);
+        productRepository.deleteOffersByProductId(id);
+        productRepository.deleteRecentlyViewedByProductId(id);
+
         if (product.getVariants() != null && !product.getVariants().isEmpty()) {
             for (ProductVariant variant : product.getVariants()) {
                 if (variant.getImages() != null && !variant.getImages().isEmpty()) {
@@ -349,6 +359,15 @@ public class ProductService {
         if (!variantRepository.existsById(variantId)) {
             throw new ResourceNotFoundException("Variant not found with id: " + variantId);
         }
+
+        // Clean up child tables referencing this variant
+        productRepository.deleteInventoryLogsByVariantId(variantId);
+        productRepository.deleteWishlistByVariantId(variantId);
+        productRepository.deleteCartItemsByVariantId(variantId);
+        productRepository.deleteCompareListByVariantId(variantId);
+        productRepository.deleteOffersByVariantId(variantId);
+        productRepository.deleteRecentlyViewedByVariantId(variantId);
+
         variantRepository.deleteById(variantId);
         log.info("Variant deleted: id={}", variantId);
     }

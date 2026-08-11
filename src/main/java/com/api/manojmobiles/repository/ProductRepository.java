@@ -31,4 +31,68 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             "LOWER(p.brand.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(p.category.name) LIKE LOWER(CONCAT('%', :query, '%'))")
     Page<Product> searchProducts(@Param("query") String query, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Product p SET p.brand = null WHERE p.brand.id = :brandId")
+    void unlinkBrandFromProducts(@Param("brandId") UUID brandId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Product p SET p.category = null WHERE p.category.id = :categoryId")
+    void unlinkCategoryFromProducts(@Param("categoryId") UUID categoryId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM inventory_log WHERE variant_id IN (SELECT id FROM product_variants WHERE product_id = :productId)", nativeQuery = true)
+    void deleteInventoryLogsByProductId(@Param("productId") UUID productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM product_question WHERE product_id = :productId", nativeQuery = true)
+    void deleteProductQuestionsByProductId(@Param("productId") UUID productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM review WHERE product_id = :productId", nativeQuery = true)
+    void deleteReviewsByProductId(@Param("productId") UUID productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM wishlist WHERE variant_id IN (SELECT id FROM product_variants WHERE product_id = :productId)", nativeQuery = true)
+    void deleteWishlistByProductId(@Param("productId") UUID productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM cart_item WHERE variant_id IN (SELECT id FROM product_variants WHERE product_id = :productId)", nativeQuery = true)
+    void deleteCartItemsByProductId(@Param("productId") UUID productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM compare_list WHERE variant_id IN (SELECT id FROM product_variants WHERE product_id = :productId)", nativeQuery = true)
+    void deleteCompareListByProductId(@Param("productId") UUID productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM offer WHERE variant_id IN (SELECT id FROM product_variants WHERE product_id = :productId)", nativeQuery = true)
+    void deleteOffersByProductId(@Param("productId") UUID productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM recently_viewed WHERE variant_id IN (SELECT id FROM product_variants WHERE product_id = :productId)", nativeQuery = true)
+    void deleteRecentlyViewedByProductId(@Param("productId") UUID productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM inventory_log WHERE variant_id = :variantId", nativeQuery = true)
+    void deleteInventoryLogsByVariantId(@Param("variantId") UUID variantId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM wishlist WHERE variant_id = :variantId", nativeQuery = true)
+    void deleteWishlistByVariantId(@Param("variantId") UUID variantId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM cart_item WHERE variant_id = :variantId", nativeQuery = true)
+    void deleteCartItemsByVariantId(@Param("variantId") UUID variantId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM compare_list WHERE variant_id = :variantId", nativeQuery = true)
+    void deleteCompareListByVariantId(@Param("variantId") UUID variantId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM offer WHERE variant_id = :variantId", nativeQuery = true)
+    void deleteOffersByVariantId(@Param("variantId") UUID variantId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM recently_viewed WHERE variant_id = :variantId", nativeQuery = true)
+    void deleteRecentlyViewedByVariantId(@Param("variantId") UUID variantId);
 }

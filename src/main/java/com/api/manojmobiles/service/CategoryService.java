@@ -5,6 +5,7 @@ import com.api.manojmobiles.dto.category.CategoryResponseDTO;
 import com.api.manojmobiles.entity.Category;
 import com.api.manojmobiles.exception.ResourceNotFoundException;
 import com.api.manojmobiles.repository.CategoryRepository;
+import com.api.manojmobiles.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     /**
      * Get a single category by ID.
@@ -140,6 +142,8 @@ public class CategoryService {
         if (!categoryRepository.existsById(id)) {
             throw new ResourceNotFoundException("Category not found with id: " + id);
         }
+        categoryRepository.findByParentId(id).forEach(child -> child.setParent(null));
+        productRepository.unlinkCategoryFromProducts(id);
         categoryRepository.deleteById(id);
         log.info("Cache EVICT for category:{} — removed after deletion", id);
     }

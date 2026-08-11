@@ -6,6 +6,7 @@ import com.api.manojmobiles.entity.Brand;
 import com.api.manojmobiles.exception.BadRequestException;
 import com.api.manojmobiles.exception.ResourceNotFoundException;
 import com.api.manojmobiles.repository.BrandRepository;
+import com.api.manojmobiles.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class BrandService {
 
     private final BrandRepository brandRepository;
+    private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<BrandResponseDTO> getAllBrands(
@@ -94,6 +96,7 @@ public class BrandService {
         if (!brandRepository.existsById(id)) {
             throw new ResourceNotFoundException("Brand not found with id: " + id);
         }
+        productRepository.unlinkBrandFromProducts(id);
         brandRepository.deleteById(id);
     }
 
