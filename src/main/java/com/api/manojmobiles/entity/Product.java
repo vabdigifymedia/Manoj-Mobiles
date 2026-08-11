@@ -32,11 +32,11 @@ public class Product {
 
     @NotBlank
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String name;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,12 +63,12 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     @Builder.Default
     private ProductStatus status = ProductStatus.ACTIVE;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT", unique = true)
+    @Column(columnDefinition = "TEXT", length = 100000, unique = true)
     private String slug;
 
     @DecimalMin("0.0")
@@ -79,15 +79,15 @@ public class Product {
     private Integer totalReviews;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaTitle;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaDescription;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaKeywords;
 
     @CreationTimestamp

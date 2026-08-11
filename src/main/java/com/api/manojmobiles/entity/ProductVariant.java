@@ -31,16 +31,16 @@ public class ProductVariant {
 
     @NotBlank
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String variantName;
 
     @NotBlank
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(unique = true)
+    @Column(unique = true, length = 100000)
     private String sku;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String color;
 
     @NotNull

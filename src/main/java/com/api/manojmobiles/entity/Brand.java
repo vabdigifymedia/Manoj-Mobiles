@@ -23,31 +23,31 @@ public class Brand {
 
     @NotBlank
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String name;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String logo_url;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String description;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT", unique = true)
+    @Column(columnDefinition = "TEXT", length = 100000, unique = true)
     private String slug;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaTitle;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaDescription;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaKeywords;
 
     @PrePersist

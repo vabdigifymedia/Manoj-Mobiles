@@ -26,7 +26,7 @@ public class Category {
 
     @NotBlank
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,27 +39,27 @@ public class Category {
     private Set<Category> children = new HashSet<>();
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT", unique = true)
+    @Column(columnDefinition = "TEXT", length = 100000, unique = true)
     private String slug;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String imageUrl;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String description;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaTitle;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaDescription;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 100000)
     private String metaKeywords;
 
     @PrePersist
