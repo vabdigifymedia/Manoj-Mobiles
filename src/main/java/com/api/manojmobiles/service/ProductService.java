@@ -1,7 +1,6 @@
 package com.api.manojmobiles.service;
 
 import com.api.manojmobiles.dto.product.ImageResponseDTO;
-import com.api.manojmobiles.dto.product.ProductFilterRequestDTO;
 import com.api.manojmobiles.dto.product.ProductListResponseDTO;
 import com.api.manojmobiles.dto.product.ProductRequestDTO;
 import com.api.manojmobiles.dto.product.ProductResponseDTO;
@@ -529,7 +528,7 @@ public class ProductService {
     private List<com.api.manojmobiles.dto.product.HighlightResponseDTO> mapHighlights(List<com.api.manojmobiles.entity.ProductHighlight> highlights) {
         if (highlights == null) return java.util.Collections.emptyList();
         return highlights.stream()
-                .sorted(java.util.Comparator.comparingInt(com.api.manojmobiles.entity.ProductHighlight::getDisplayOrder))
+                .sorted(java.util.Comparator.comparingInt(h -> h.getDisplayOrder() != null ? h.getDisplayOrder() : 0))
                 .map(h -> com.api.manojmobiles.dto.product.HighlightResponseDTO.builder()
                         .id(h.getId())
                         .iconName(h.getIconName())
