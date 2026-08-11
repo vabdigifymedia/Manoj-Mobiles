@@ -230,4 +230,13 @@ public class ProductController {
         productService.reorderHighlights(productId, orderedHighlightIds);
         return ResponseEntity.ok(ApiResponse.success("Highlights reordered successfully", null));
     }
+
+    @DeleteMapping("/api/products/variants/{variantId}/image-url")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteVariantImageUrl(
+            @PathVariable UUID variantId,
+            @RequestParam("url") String imageUrl) {
+        productService.deleteVariantImageUrl(variantId, imageUrl);
+        return ResponseEntity.ok(ApiResponse.success("Legacy image URL deleted successfully", null));
+    }
 }

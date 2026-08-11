@@ -422,6 +422,19 @@ public class ProductService {
 
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
+    public void deleteVariantImageUrl(UUID variantId, String imageUrl) {
+        ProductVariant variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Variant not found"));
+        
+        if (variant.getImageUrls() != null && variant.getImageUrls().contains(imageUrl)) {
+            variant.getImageUrls().remove(imageUrl);
+            variantRepository.save(variant);
+            log.info("Removed legacy image URL from variant: {}", variantId);
+        }
+    }
+
+    @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void setPrimaryImage(UUID imageId) {
         ProductImage image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
