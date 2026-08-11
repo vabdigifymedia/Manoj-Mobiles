@@ -30,17 +30,14 @@ public class ProductVariant {
     private Product product;
 
     @NotBlank
-    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT", length = 100000)
+    @Column(columnDefinition = "text", length = 10485760)
     private String variantName;
 
     @NotBlank
-    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(unique = true, length = 100000)
+    @Column(unique = true, length = 10485760)
     private String sku;
 
-    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(columnDefinition = "TEXT", length = 100000)
+    @Column(columnDefinition = "text", length = 10485760)
     private String color;
 
     @NotNull

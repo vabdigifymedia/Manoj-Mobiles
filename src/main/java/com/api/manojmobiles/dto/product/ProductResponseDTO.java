@@ -26,6 +26,9 @@ public class ProductResponseDTO {
     private BigDecimal avgRating;
     private Integer totalReviews;
     private String slug;
+    private String metaTitle;
+    private String metaDescription;
+    private String metaKeywords;
     private List<ProductVariantResponseDTO> variants;
     private List<HighlightResponseDTO> highlights;
 }

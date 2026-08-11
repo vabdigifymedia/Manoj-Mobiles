@@ -496,6 +496,9 @@ public class ProductService {
                 .avgRating(product.getAvgRating())
                 .totalReviews(product.getTotalReviews())
                 .slug(product.getSlug())
+                .metaTitle(product.getMetaTitle())
+                .metaDescription(product.getMetaDescription())
+                .metaKeywords(product.getMetaKeywords())
                 .variants(mapVariants(product.getVariants()))
                 .highlights(mapHighlights(product.getHighlights()))
                 .build();
