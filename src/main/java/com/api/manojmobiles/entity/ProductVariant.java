@@ -4,6 +4,8 @@ import com.api.manojmobiles.entity.enums.StockStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,13 +30,16 @@ public class ProductVariant {
     private Product product;
 
     @NotBlank
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(columnDefinition = "TEXT")
     private String variantName;
 
     @NotBlank
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(unique = true)
     private String sku;
 
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(columnDefinition = "TEXT")
     private String color;
 
