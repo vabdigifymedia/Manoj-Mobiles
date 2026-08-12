@@ -214,7 +214,7 @@ public class ProductService {
             }
             
             java.util.Set<String> colors = variants.stream()
-                .map(ProductVariant::getColor)
+                .map(v -> v.getColor())
                 .filter(c -> c != null)
                 .collect(java.util.stream.Collectors.toSet());
                 
