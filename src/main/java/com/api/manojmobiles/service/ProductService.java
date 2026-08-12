@@ -393,7 +393,10 @@ public class ProductService {
 
         String color = variant.getColor();
         UUID productId = variant.getProduct().getId();
-        boolean hasExistingImages = imageRepository.findByProductIdAndColor(productId, color).size() > 0;
+        List<ProductImage> existingImages = imageRepository.findByProductIdAndColor(productId, color);
+        imageRepository.deleteAll(existingImages);
+        boolean hasExistingImages = false;
+
 
         for (int i = 0; i < imageUrls.size(); i++) {
             ProductImage image = ProductImage.builder()
@@ -472,8 +475,8 @@ public class ProductService {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
 
-        List<ProductSpecification> existingSpecs = specRepository.findByVariantId(variantId);
-        specRepository.deleteAll(existingSpecs);
+        variant.getSpecifications().clear();
+        variantRepository.flush();
 
         for (ProductSpecificationRequestDTO spec : specs) {
             ProductSpecification entity = ProductSpecification.builder()
