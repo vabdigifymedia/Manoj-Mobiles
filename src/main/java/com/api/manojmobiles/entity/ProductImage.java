@@ -22,8 +22,11 @@ public class ProductImage {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "variant_id")
-    private ProductVariant variant;
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @Column(name = "color")
+    private String color;
 
     @NotBlank
     @Column(columnDefinition = "TEXT")

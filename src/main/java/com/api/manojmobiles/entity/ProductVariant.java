@@ -8,6 +8,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "product_variants")
@@ -62,9 +64,17 @@ public class ProductVariant {
 
     private Boolean codAvailable;
 
-    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> images;
 
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductSpecification> specifications;
+
+    @Transient
+    public List<ProductImage> getImages() {
+        if (product == null || product.getImages() == null) {
+            return Collections.emptyList();
+        }
+        return product.getImages().stream()
+                .filter(img -> this.color != null && this.color.equals(img.getColor()))
+                .collect(Collectors.toList());
+    }
 }

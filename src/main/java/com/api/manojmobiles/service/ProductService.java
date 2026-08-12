@@ -207,14 +207,22 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
 
         if (status == com.api.manojmobiles.entity.enums.ProductStatus.ACTIVE) {
-            // Validate all variants have images before publishing
+            // Validate all variant colors have images before publishing
             List<ProductVariant> variants = product.getVariants();
             if (variants == null || variants.isEmpty()) {
                 throw new com.api.manojmobiles.exception.BadRequestException("Cannot publish product without any variants.");
             }
-            for (ProductVariant v : variants) {
-                if (v.getImages() == null || v.getImages().isEmpty()) {
-                    throw new com.api.manojmobiles.exception.BadRequestException("Cannot publish product: Variant '" + v.getVariantName() + "' has no images.");
+            
+            java.util.Set<String> colors = variants.stream()
+                .map(ProductVariant::getColor)
+                .filter(c -> c != null)
+                .collect(java.util.stream.Collectors.toSet());
+                
+            List<ProductImage> allImages = product.getImages();
+            for (String color : colors) {
+                boolean hasImage = allImages != null && allImages.stream().anyMatch(img -> color.equals(img.getColor()));
+                if (!hasImage) {
+                    throw new com.api.manojmobiles.exception.BadRequestException("Cannot publish product: Color group '" + color + "' has no images.");
                 }
             }
         }
@@ -383,17 +391,20 @@ public class ProductService {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
 
-        boolean hasExistingImages = imageRepository.findByVariantId(variantId).size() > 0;
+        String color = variant.getColor();
+        UUID productId = variant.getProduct().getId();
+        boolean hasExistingImages = imageRepository.findByProductIdAndColor(productId, color).size() > 0;
 
         for (int i = 0; i < imageUrls.size(); i++) {
             ProductImage image = ProductImage.builder()
-                    .variant(variant)
+                    .product(variant.getProduct())
+                    .color(color)
                     .url(imageUrls.get(i))
-                    .isPrimary(!hasExistingImages && i == 0) // first image of the variant is primary
+                    .isPrimary(!hasExistingImages && i == 0) // first image of the color is primary
                     .build();
             imageRepository.save(image);
         }
-        log.info("Added {} images to variant {}", imageUrls.size(), variantId);
+        log.info("Added {} images to product {} color {}", imageUrls.size(), productId, color);
     }
 
     @Transactional
@@ -402,19 +413,20 @@ public class ProductService {
         ProductImage image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
 
-        UUID variantId = image.getVariant().getId();
+        UUID productId = image.getProduct().getId();
+        String color = image.getColor();
         boolean wasPrimary = image.getIsPrimary() != null ? image.getIsPrimary() : false;
 
         imageRepository.delete(image);
         log.info("Image deleted: id={}", imageId);
 
         if (wasPrimary) {
-            List<ProductImage> remainingImages = imageRepository.findByVariantId(variantId);
+            List<ProductImage> remainingImages = imageRepository.findByProductIdAndColor(productId, color);
             if (!remainingImages.isEmpty()) {
                 ProductImage newPrimary = remainingImages.get(0);
                 newPrimary.setIsPrimary(true);
                 imageRepository.save(newPrimary);
-                log.info("Auto-reassigned primary image to {} for variant {}", newPrimary.getId(), variantId);
+                log.info("Auto-reassigned primary image to {} for product {} color {}", newPrimary.getId(), productId, color);
             }
         }
     }
@@ -422,13 +434,16 @@ public class ProductService {
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public void deleteVariantImageUrl(UUID variantId, String imageUrl) {
-        List<ProductImage> images = imageRepository.findByVariantId(variantId);
+        ProductVariant variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
+                
+        List<ProductImage> images = imageRepository.findByProductIdAndColor(variant.getProduct().getId(), variant.getColor());
         images.stream()
                 .filter(img -> img.getUrl().equals(imageUrl))
                 .findFirst()
                 .ifPresent(img -> {
                     deleteImage(img.getId());
-                    log.info("Removed legacy image URL from variant: {}", variantId);
+                    log.info("Removed legacy image URL from product color group: {}", variant.getColor());
                 });
     }
 
@@ -438,14 +453,15 @@ public class ProductService {
         ProductImage image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
 
-        UUID variantId = image.getVariant().getId();
+        UUID productId = image.getProduct().getId();
+        String color = image.getColor();
 
-        List<ProductImage> allImages = imageRepository.findByVariantId(variantId);
+        List<ProductImage> allImages = imageRepository.findByProductIdAndColor(productId, color);
         for (ProductImage img : allImages) {
             img.setIsPrimary(img.getId().equals(imageId));
             imageRepository.save(img);
         }
-        log.info("Primary image set to {} for variant {}", imageId, variantId);
+        log.info("Primary image set to {} for product {} color {}", imageId, productId, color);
     }
 
 

@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface ProductImageRepository extends JpaRepository<ProductImage, UUID> {
-    List<ProductImage> findByVariantId(UUID variantId);
+    List<ProductImage> findByProductIdAndColor(UUID productId, String color);
 }
