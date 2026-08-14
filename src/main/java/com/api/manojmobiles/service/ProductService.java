@@ -476,7 +476,6 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
 
         variant.getSpecifications().clear();
-        variantRepository.flush();
 
         for (ProductSpecificationRequestDTO spec : specs) {
             ProductSpecification entity = ProductSpecification.builder()
@@ -485,8 +484,9 @@ public class ProductService {
                     .specKey(spec.getSpecKey())
                     .specValue(spec.getSpecValue())
                     .build();
-            specRepository.save(entity);
+            variant.getSpecifications().add(entity);
         }
+        variantRepository.save(variant);
         log.info("Added {} specifications to variant {}", specs.size(), variantId);
     }
 

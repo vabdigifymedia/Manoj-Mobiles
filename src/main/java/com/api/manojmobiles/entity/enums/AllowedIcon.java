@@ -12,5 +12,8 @@ public enum AllowedIcon {
     Wifi,
     Bluetooth,
     CheckCircle,
-    Zap
+    Zap,
+    MemoryStick,
+    HardDrive,
+    Microchip
 }
