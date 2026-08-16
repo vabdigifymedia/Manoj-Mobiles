@@ -480,7 +480,11 @@ public class ProductService {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + variantId));
 
-        variant.getSpecifications().clear();
+        if (variant.getSpecifications() == null) {
+            variant.setSpecifications(new java.util.ArrayList<>());
+        } else {
+            variant.getSpecifications().clear();
+        }
 
         for (ProductSpecificationRequestDTO spec : specs) {
             ProductSpecification entity = ProductSpecification.builder()
