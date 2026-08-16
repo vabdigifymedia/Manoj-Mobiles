@@ -75,6 +75,11 @@ public class ProductVariant {
         }
         return product.getImages().stream()
                 .filter(img -> this.color != null && this.color.equals(img.getColor()))
+                .sorted((a, b) -> {
+                    Integer orderA = a.getDisplayOrder() != null ? a.getDisplayOrder() : Integer.MAX_VALUE;
+                    Integer orderB = b.getDisplayOrder() != null ? b.getDisplayOrder() : Integer.MAX_VALUE;
+                    return orderA.compareTo(orderB);
+                })
                 .collect(Collectors.toList());
     }
 }

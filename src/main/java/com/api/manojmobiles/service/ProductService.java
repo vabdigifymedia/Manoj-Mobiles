@@ -408,6 +408,7 @@ public class ProductService {
                     .color(color)
                     .url(imageUrls.get(i))
                     .isPrimary(!hasExistingImages && i == 0) // first image of the color is primary
+                    .displayOrder(i)
                     .build();
             imageRepository.save(image);
         }
