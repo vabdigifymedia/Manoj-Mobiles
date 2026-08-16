@@ -53,4 +53,29 @@ public class CloudinaryService {
         log.error("All {} Cloudinary upload attempts failed for file: {}", maxRetries, file.getOriginalFilename(), lastException);
         throw new IOException("Cloudinary upload failed after retries: " + (lastException != null ? lastException.getMessage() : "Unknown error"), lastException);
     }
+
+    public void deleteImage(String imageUrl) {
+        try {
+            if (imageUrl != null && imageUrl.contains("/upload/")) {
+                String[] parts = imageUrl.split("/upload/");
+                if (parts.length > 1) {
+                    String path = parts[1];
+                    // Handle optional version like v1234567/
+                    if (path.matches("^v\\d+/.*")) {
+                        path = path.substring(path.indexOf("/") + 1);
+                    }
+                    // Remove file extension
+                    int lastDot = path.lastIndexOf('.');
+                    if (lastDot != -1) {
+                        path = path.substring(0, lastDot);
+                    }
+                    String publicId = path;
+                    log.info("Deleting image from Cloudinary with publicId: {}", publicId);
+                    cloudinary.uploader().destroy(publicId, com.cloudinary.utils.ObjectUtils.emptyMap());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to delete image from Cloudinary: {}", e.getMessage());
+        }
+    }
 }

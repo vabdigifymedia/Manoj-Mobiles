@@ -30,4 +30,16 @@ public class FileUploadController {
                     .body(ApiResponse.error("Failed to upload image: " + e.getMessage()));
         }
     }
+
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteImage(@RequestParam("url") String url) {
+        try {
+            cloudinaryService.deleteImage(url);
+            return ResponseEntity.ok(ApiResponse.success("Image deleted successfully", null));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.error("Failed to delete image: " + e.getMessage()));
+        }
+    }
 }
