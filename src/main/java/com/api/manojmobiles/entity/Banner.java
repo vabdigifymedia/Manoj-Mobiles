@@ -40,6 +40,7 @@ public class Banner {
     @Column(nullable = false, length = 500)
     private String linkUrl;
 
+    @Builder.Default
     @Column(length = 50)
     private String ctaText = "Shop Now";
 
@@ -50,8 +51,10 @@ public class Banner {
     @Column(length = 100)
     private String bgGradient;
 
+    @Builder.Default
     private Integer displayOrder = 0;
 
+    @Builder.Default
     private Boolean isActive = true;
 
     private Instant startTime;

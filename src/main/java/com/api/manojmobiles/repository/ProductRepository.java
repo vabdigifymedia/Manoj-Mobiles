@@ -27,10 +27,11 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Page<Product> findByStatus(ProductStatus status, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE " +
-            "LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "(LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(p.brand.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-            "LOWER(p.category.name) LIKE LOWER(CONCAT('%', :query, '%'))")
-    Page<Product> searchProducts(@Param("query") String query, Pageable pageable);
+            "LOWER(p.category.name) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+            "AND (:status IS NULL OR p.status = :status)")
+    Page<Product> searchProducts(@Param("query") String query, @Param("status") ProductStatus status, Pageable pageable);
 
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE Product p SET p.brand = null WHERE p.brand.id = :brandId")

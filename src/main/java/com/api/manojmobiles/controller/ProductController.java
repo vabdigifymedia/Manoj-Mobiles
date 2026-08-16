@@ -36,16 +36,18 @@ public class ProductController {
 
     @GetMapping("/api/public/products")
     public ResponseEntity<ApiResponse<Page<ProductListResponseDTO>>> getAllProducts(
+            @RequestParam(required = false, defaultValue = "false") boolean includeInactive,
             @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
-        Page<ProductListResponseDTO> products = productService.getAllProducts(pageable);
+        Page<ProductListResponseDTO> products = productService.getAllProducts(includeInactive, pageable);
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 
     @GetMapping("/api/public/products/search")
     public ResponseEntity<ApiResponse<Page<ProductListResponseDTO>>> searchProducts(
             @RequestParam("q") String query,
+            @RequestParam(required = false, defaultValue = "false") boolean includeInactive,
             @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
-        Page<ProductListResponseDTO> products = productService.searchProducts(query, pageable);
+        Page<ProductListResponseDTO> products = productService.searchProducts(query, includeInactive, pageable);
         return ResponseEntity.ok(ApiResponse.success("Products searched successfully", products));
     }
 

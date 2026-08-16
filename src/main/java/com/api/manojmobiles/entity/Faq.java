@@ -28,11 +28,14 @@ public class Faq {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String answer;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(length = 100)
     private FaqCategory category = FaqCategory.GENERAL;
 
+    @Builder.Default
     private Integer displayOrder = 0;
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreationTimestamp

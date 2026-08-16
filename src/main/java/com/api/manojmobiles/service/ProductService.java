@@ -14,6 +14,7 @@ import com.api.manojmobiles.entity.Product;
 import com.api.manojmobiles.entity.ProductImage;
 import com.api.manojmobiles.entity.ProductSpecification;
 import com.api.manojmobiles.entity.ProductVariant;
+import com.api.manojmobiles.entity.enums.ProductStatus;
 import com.api.manojmobiles.entity.enums.StockStatus;
 import com.api.manojmobiles.exception.ResourceNotFoundException;
 import com.api.manojmobiles.repository.BrandRepository;
@@ -129,9 +130,11 @@ public class ProductService {
         return mapToResponseDTO(product);
     }
 
-    public Page<ProductListResponseDTO> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(this::mapToListDTO);
+    public Page<ProductListResponseDTO> getAllProducts(boolean includeInactive, Pageable pageable) {
+        if (includeInactive) {
+            return productRepository.findAll(pageable).map(this::mapToListDTO);
+        }
+        return productRepository.findByStatus(ProductStatus.ACTIVE, pageable).map(this::mapToListDTO);
     }
 
     public ProductResponseDTO getProductBySlug(String slug) {
@@ -145,11 +148,12 @@ public class ProductService {
                 .map(this::mapToListDTO);
     }
 
-    public Page<ProductListResponseDTO> searchProducts(String query, Pageable pageable) {
+    public Page<ProductListResponseDTO> searchProducts(String query, boolean includeInactive, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
-            return getAllProducts(pageable);
+            return getAllProducts(includeInactive, pageable);
         }
-        return productRepository.searchProducts(query, pageable)
+        ProductStatus statusFilter = includeInactive ? null : ProductStatus.ACTIVE;
+        return productRepository.searchProducts(query, statusFilter, pageable)
                 .map(this::mapToListDTO);
     }
 
