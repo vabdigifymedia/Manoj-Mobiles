@@ -634,7 +634,6 @@ public class ProductService {
                     break;
                 }
             }
-            }
         }
 
         List<String> highlights = product.getHighlights() != null 
