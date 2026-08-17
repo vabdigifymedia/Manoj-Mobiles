@@ -617,7 +617,7 @@ public class ProductService {
         if (variants != null && !variants.isEmpty()) {
             ProductVariant bestVariant = variants.stream()
                     .filter(v -> v != null && v.getSellingPrice() != null)
-                    .min(java.util.Comparator.comparing(ProductVariant::getSellingPrice))
+                    .min(java.util.Comparator.comparing(v -> v.getSellingPrice()))
                     .orElse(null);
                     
             if (bestVariant != null) {
@@ -638,8 +638,8 @@ public class ProductService {
 
         List<String> highlights = product.getHighlights() != null 
                 ? product.getHighlights().stream()
-                    .sorted(java.util.Comparator.comparing(com.api.manojmobiles.entity.ProductHighlight::getDisplayOrder))
-                    .map(com.api.manojmobiles.entity.ProductHighlight::getText)
+                    .sorted(java.util.Comparator.comparing(h -> h.getDisplayOrder()))
+                    .map(h -> h.getText())
                     .collect(java.util.stream.Collectors.toList())
                 : java.util.Collections.emptyList();
 
