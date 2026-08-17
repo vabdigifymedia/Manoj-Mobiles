@@ -3,6 +3,7 @@ package com.api.manojmobiles.dto.product;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -24,4 +25,7 @@ public class ProductListResponseDTO {
     private String primaryImageUrl;
     private BigDecimal avgRating;
     private Integer totalReviews;
+    private BigDecimal mrp;
+    private Integer discountPercent;
+    private List<String> highlights;
 }

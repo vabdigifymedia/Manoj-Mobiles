@@ -609,15 +609,22 @@ public class ProductService {
 
     private ProductListResponseDTO mapToListDTO(Product product) {
         BigDecimal startingPrice = null;
+        BigDecimal mrp = null;
+        Integer discountPercent = null;
         String primaryImageUrl = null;
 
         List<ProductVariant> variants = product.getVariants();
         if (variants != null && !variants.isEmpty()) {
-            startingPrice = variants.stream()
+            ProductVariant bestVariant = variants.stream()
                     .filter(v -> v != null && v.getSellingPrice() != null)
-                    .map(v -> v.getSellingPrice())
-                    .min(java.util.Comparator.naturalOrder())
+                    .min(java.util.Comparator.comparing(ProductVariant::getSellingPrice))
                     .orElse(null);
+                    
+            if (bestVariant != null) {
+                startingPrice = bestVariant.getSellingPrice();
+                mrp = bestVariant.getMrp();
+                discountPercent = bestVariant.getDiscountPercent();
+            }
 
 
             // Use the primary image of the first variant as the card thumbnail
@@ -627,7 +634,15 @@ public class ProductService {
                     break;
                 }
             }
+            }
         }
+
+        List<String> highlights = product.getHighlights() != null 
+                ? product.getHighlights().stream()
+                    .sorted(java.util.Comparator.comparing(com.api.manojmobiles.entity.ProductHighlight::getDisplayOrder))
+                    .map(com.api.manojmobiles.entity.ProductHighlight::getText)
+                    .collect(java.util.stream.Collectors.toList())
+                : java.util.Collections.emptyList();
 
         return ProductListResponseDTO.builder()
                 .id(product.getId())
@@ -638,8 +653,11 @@ public class ProductService {
                 .status(product.getStatus() != null ? product.getStatus().name() : null)
                 .startingPrice(startingPrice)
                 .primaryImageUrl(primaryImageUrl)
+                .mrp(mrp)
+                .discountPercent(discountPercent)
                 .avgRating(product.getAvgRating())
                 .totalReviews(product.getTotalReviews())
+                .highlights(highlights)
                 .build();
     }
 
