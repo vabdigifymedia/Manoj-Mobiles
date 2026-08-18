@@ -29,7 +29,7 @@ public class SpecTemplateServiceImpl implements SpecTemplateService {
 
     private final SpecTemplateRepository specTemplateRepository;
     private final CategoryRepository categoryRepository;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public List<SpecTemplateResponseDTO> getAllSpecTemplates() {
