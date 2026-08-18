@@ -613,6 +613,8 @@ public class ProductService {
         Integer discountPercent = null;
         String primaryImageUrl = null;
 
+        UUID defaultVariantId = null;
+
         List<ProductVariant> variants = product.getVariants();
         if (variants != null && !variants.isEmpty()) {
             ProductVariant bestVariant = variants.stream()
@@ -624,6 +626,7 @@ public class ProductService {
                 startingPrice = bestVariant.getSellingPrice();
                 mrp = bestVariant.getMrp();
                 discountPercent = bestVariant.getDiscountPercent();
+                defaultVariantId = bestVariant.getId();
             }
 
 
@@ -648,8 +651,10 @@ public class ProductService {
                 .name(product.getName())
                 .brandName(product.getBrand() != null ? product.getBrand().getName() : null)
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
                 .slug(product.getSlug())
                 .status(product.getStatus() != null ? product.getStatus().name() : null)
+                .defaultVariantId(defaultVariantId)
                 .startingPrice(startingPrice)
                 .primaryImageUrl(primaryImageUrl)
                 .mrp(mrp)

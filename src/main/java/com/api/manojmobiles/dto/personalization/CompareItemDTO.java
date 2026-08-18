@@ -16,6 +16,7 @@ import java.util.UUID;
 public class CompareItemDTO {
     private UUID id;
     private UUID variantId;
+    private UUID productId;
     private String variantName;
     private String productName;
     private BigDecimal price;

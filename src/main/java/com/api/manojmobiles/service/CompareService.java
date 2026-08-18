@@ -106,6 +106,7 @@ public class CompareService {
         return CompareItemDTO.builder()
                 .id(compareList.getId())
                 .variantId(variant.getId())
+                .productId(variant.getProduct().getId())
                 .variantName(variant.getVariantName())
                 .productName(variant.getProduct().getName())
                 .price(variant.getSellingPrice())

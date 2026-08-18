@@ -17,10 +17,12 @@ public class ProductListResponseDTO {
     private String name;
     private String brandName;
     private String categoryName;
+    private UUID categoryId;
     private String slug;
     private String status;
 
     // Summary fields for catalog grid display
+    private UUID defaultVariantId;
     private BigDecimal startingPrice;
     private String primaryImageUrl;
     private BigDecimal avgRating;
