@@ -1,7 +1,7 @@
 package com.api.manojmobiles.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "cart")
+@Table(name = "cart", uniqueConstraints = {
+    @UniqueConstraint(columnNames = "guest_id")
+})
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -21,10 +24,12 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotNull
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "guest_id")
+    private String guestId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

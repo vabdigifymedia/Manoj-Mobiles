@@ -55,7 +55,7 @@ public class OrderService {
                         .orElseThrow(() -> new ResourceNotFoundException("User not found")));
 
         // 1. Fetch Cart
-        CartResponseDTO cartDTO = cartService.getCartForUser(username);
+        CartResponseDTO cartDTO = cartService.getCart(username, null);
         if (cartDTO.getItems() == null || cartDTO.getItems().isEmpty()) {
             throw new BadRequestException("Cart is empty");
         }

@@ -41,29 +41,42 @@ public class CartService {
     private int maxQtyPerItem;
 
     @Transactional
-    public CartResponseDTO getCartForUser(String username) {
-        Cart cart = getOrCreateCart(username);
+    public CartResponseDTO getCart(String username, String guestId) {
+        Cart cart = getOrCreateCart(username, guestId);
         return mapToCartResponseDTO(cart);
     }
 
-    private Cart getOrCreateCart(String username) {
-        User user = userRepository.findByEmail(username)
-                .orElseGet(() -> userRepository.findByPhone(username)
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found")));
-        
-        return cartRepository.findByUserId(user.getId()).orElseGet(() -> {
-            Cart newCart = Cart.builder()
-                    .user(user)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-            return cartRepository.save(newCart);
-        });
+    private Cart getOrCreateCart(String username, String guestId) {
+        if (username != null) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+
+            return cartRepository.findByUserId(user.getId()).orElseGet(() -> {
+                Cart newCart = Cart.builder()
+                        .user(user)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build();
+                return cartRepository.save(newCart);
+            });
+        } else if (guestId != null && !guestId.trim().isEmpty()) {
+            return cartRepository.findByGuestId(guestId).orElseGet(() -> {
+                Cart newCart = Cart.builder()
+                        .guestId(guestId)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build();
+                return cartRepository.save(newCart);
+            });
+        } else {
+            throw new BadRequestException("Either authentication or Guest ID is required");
+        }
     }
 
     @Transactional
-    public CartResponseDTO addToCart(String username, AddToCartRequestDTO request) {
-        Cart cart = getOrCreateCart(username);
+    public CartResponseDTO addToCart(String username, String guestId, AddToCartRequestDTO request) {
+        Cart cart = getOrCreateCart(username, guestId);
 
         ProductVariant variant = productVariantRepository.findById(request.getVariantId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product variant not found"));
@@ -103,17 +116,11 @@ public class CartService {
     }
 
     @Transactional
-    public CartResponseDTO updateItemQuantity(String username, UUID itemId, UpdateCartItemRequestDTO request) {
+    public CartResponseDTO updateItemQuantity(String username, String guestId, UUID itemId, UpdateCartItemRequestDTO request) {
         CartItem cartItem = cartItemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
 
-        User user = userRepository.findByEmail(username)
-                .orElseGet(() -> userRepository.findByPhone(username)
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found")));
-
-        if (!cartItem.getCart().getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("Access Denied: You do not own this cart item");
-        }
+        verifyCartOwnership(username, guestId, cartItem.getCart());
 
         ProductVariant variant = cartItem.getVariant();
         int requestedQty = request.getQty();
@@ -131,17 +138,11 @@ public class CartService {
     }
 
     @Transactional
-    public CartResponseDTO removeItem(String username, UUID itemId) {
+    public CartResponseDTO removeItem(String username, String guestId, UUID itemId) {
         CartItem cartItem = cartItemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
 
-        User user = userRepository.findByEmail(username)
-                .orElseGet(() -> userRepository.findByPhone(username)
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found")));
-
-        if (!cartItem.getCart().getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("Access Denied: You do not own this cart item");
-        }
+        verifyCartOwnership(username, guestId, cartItem.getCart());
 
         Cart cart = cartItem.getCart();
         cartItemRepository.delete(cartItem);
@@ -161,6 +162,88 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
         cart.setUpdatedAt(LocalDateTime.now());
         cartRepository.save(cart);
+    }
+
+    @Transactional
+    public void mergeGuestCart(String username, String guestId) {
+        if (username == null || guestId == null || guestId.trim().isEmpty()) {
+            return; // Nothing to merge
+        }
+
+        Optional<Cart> guestCartOpt = cartRepository.findByGuestId(guestId);
+        if (guestCartOpt.isEmpty()) {
+            return; // No guest cart to merge
+        }
+        Cart guestCart = guestCartOpt.get();
+        if (guestCart.getItems() == null || guestCart.getItems().isEmpty()) {
+            // Delete empty guest cart
+            cartRepository.delete(guestCart);
+            return;
+        }
+
+        User user = userRepository.findByEmail(username)
+                .orElseGet(() -> userRepository.findByPhone(username)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+
+        Optional<Cart> userCartOpt = cartRepository.findByUserId(user.getId());
+
+        if (userCartOpt.isEmpty()) {
+            // User doesn't have a cart, just assign the guest cart to the user
+            guestCart.setUser(user);
+            guestCart.setGuestId(null);
+            guestCart.setUpdatedAt(LocalDateTime.now());
+            cartRepository.save(guestCart);
+        } else {
+            // User already has a cart, merge items
+            Cart userCart = userCartOpt.get();
+            List<CartItem> userItems = userCart.getItems() != null ? userCart.getItems() : new ArrayList<>();
+
+            for (CartItem guestItem : guestCart.getItems()) {
+                Optional<CartItem> existingUserItemOpt = userItems.stream()
+                        .filter(i -> i.getVariant().getId().equals(guestItem.getVariant().getId()))
+                        .findFirst();
+
+                if (existingUserItemOpt.isPresent()) {
+                    CartItem userItem = existingUserItemOpt.get();
+                    int newQty = userItem.getQty() + guestItem.getQty();
+                    // apply limit capping without failing the whole merge process
+                    if (newQty > maxQtyPerItem) {
+                        newQty = maxQtyPerItem;
+                    }
+                    if (newQty > userItem.getVariant().getStockQty()) {
+                        newQty = userItem.getVariant().getStockQty();
+                    }
+                    userItem.setQty(newQty);
+                    cartItemRepository.save(userItem);
+                } else {
+                    guestItem.setCart(userCart);
+                    cartItemRepository.save(guestItem);
+                }
+            }
+            
+            // Delete guest cart
+            cartRepository.delete(guestCart);
+            
+            userCart.setUpdatedAt(LocalDateTime.now());
+            cartRepository.save(userCart);
+        }
+    }
+
+    private void verifyCartOwnership(String username, String guestId, Cart cart) {
+        if (username != null) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found")));
+            if (cart.getUser() == null || !cart.getUser().getId().equals(user.getId())) {
+                throw new AccessDeniedException("Access Denied: You do not own this cart");
+            }
+        } else if (guestId != null) {
+            if (!guestId.equals(cart.getGuestId())) {
+                throw new AccessDeniedException("Access Denied: You do not own this cart");
+            }
+        } else {
+            throw new AccessDeniedException("Access Denied");
+        }
     }
 
     private void validateQuantityLimits(int requestedQty, ProductVariant variant) {

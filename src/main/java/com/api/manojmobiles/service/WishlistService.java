@@ -71,7 +71,7 @@ public class WishlistService {
         cartRequest.setVariantId(variantId);
         cartRequest.setQty(1);
 
-        cartService.addToCart(username, cartRequest);
+        cartService.addToCart(username, null, cartRequest);
 
         wishlistRepository.deleteByUserIdAndVariantId(user.getId(), variantId);
     }
