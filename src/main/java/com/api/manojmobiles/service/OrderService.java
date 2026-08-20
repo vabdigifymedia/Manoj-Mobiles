@@ -10,6 +10,7 @@ import com.api.manojmobiles.entity.*;
 import com.api.manojmobiles.entity.enums.OrderStatus;
 import com.api.manojmobiles.entity.enums.PaymentMethod;
 import com.api.manojmobiles.entity.enums.PaymentStatus;
+import com.api.manojmobiles.entity.enums.NotificationType;
 import com.api.manojmobiles.exception.BadRequestException;
 import com.api.manojmobiles.exception.ResourceNotFoundException;
 import com.api.manojmobiles.repository.*;
@@ -47,6 +48,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartService cartService;
     private final CouponService couponService;
+    private final NotificationService notificationService;
 
     @Transactional
     public OrderResponseDTO placeOrder(String username, PlaceOrderRequestDTO request) {
@@ -186,6 +188,14 @@ public class OrderService {
         // 9. Clear Cart finally
         cartService.clearCart(cartDTO.getId());
 
+        // 10. Send Notification
+        notificationService.createNotification(
+                user,
+                "Order Placed",
+                "Your order " + order.getOrderNumber() + " has been placed successfully.",
+                NotificationType.ORDER_UPDATE
+        );
+
         log.info("Order {} placed for user {}", order.getOrderNumber(), username);
         
         return mapToDTO(order, orderItems, payment, expectedDelivery);
@@ -251,6 +261,14 @@ public class OrderService {
 
         log.info("Order {} cancelled by user {}", order.getOrderNumber(), username);
 
+        // Send Notification
+        notificationService.createNotification(
+                user,
+                "Order Cancelled",
+                "Your order " + order.getOrderNumber() + " has been cancelled.",
+                NotificationType.ORDER_UPDATE
+        );
+
         return mapToDTO(order, order.getOrderItems(), payment, null);
     }
 
@@ -286,6 +304,14 @@ public class OrderService {
                 .note("Payment successful via mock endpoint")
                 .build();
         statusHistoryRepository.save(history);
+
+        // Send Notification
+        notificationService.createNotification(
+                order.getUser(),
+                "Payment Successful",
+                "Payment for order " + order.getOrderNumber() + " was successful. Your order is confirmed.",
+                NotificationType.ORDER_UPDATE
+        );
 
         return mapToDTO(order, order.getOrderItems(), payment, null); // We can calculate delivery again if needed, or omit for now
     }
@@ -339,6 +365,14 @@ public class OrderService {
                 .updatedBy(updatedBy)
                 .build();
         statusHistoryRepository.save(history);
+
+        // Send Notification
+        notificationService.createNotification(
+                order.getUser(),
+                "Order Status Updated",
+                "Your order " + order.getOrderNumber() + " is now " + newStatus.name() + ".",
+                NotificationType.ORDER_UPDATE
+        );
 
         return mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null), null);
     }
