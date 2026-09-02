@@ -74,7 +74,7 @@ public class PineLabsConfig {
             HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    baseUrl + "/api/auth/v2/token",
+                    baseUrl + "/api/auth/v1/token",
                     HttpMethod.POST,
                     request,
                     new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
