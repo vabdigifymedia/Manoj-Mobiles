@@ -49,6 +49,7 @@ public class OrderService {
     private final CartService cartService;
     private final CouponService couponService;
     private final NotificationService notificationService;
+    private final PineLabsPaymentService pineLabsPaymentService;
 
     @Transactional
     public OrderResponseDTO placeOrder(String username, PlaceOrderRequestDTO request) {
@@ -197,8 +198,16 @@ public class OrderService {
         );
 
         log.info("Order {} placed for user {}", order.getOrderNumber(), username);
-        
-        return mapToDTO(order, orderItems, payment, expectedDelivery);
+
+        // 11. Generate Pine Labs Payment Link for non-COD orders
+        String paymentUrl = null;
+        if (request.getPaymentMethod() != PaymentMethod.COD) {
+            paymentUrl = pineLabsPaymentService.createPaymentOrder(order, payment);
+        }
+
+        OrderResponseDTO responseDTO = mapToDTO(order, orderItems, payment, expectedDelivery);
+        responseDTO.setPaymentUrl(paymentUrl);
+        return responseDTO;
     }
 
     @Transactional

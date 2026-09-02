@@ -60,3 +60,9 @@ app:
 
   cloudinary:
     url: ${CLOUDINARY_URL:}
+
+  payment:
+    pine-labs:
+      client-id: ${PINELABS_CLIENT_ID}
+      client-secret: ${PINELABS_CLIENT_SECRET}
+      base-url: ${PINELABS_BASE_URL}

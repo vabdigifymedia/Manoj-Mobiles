@@ -39,5 +39,7 @@ public class OrderResponseDTO {
     private LocalDateTime placedAt;
     private LocalDateTime expectedDeliveryDate;
 
+    private String paymentUrl; // Pine Labs checkout URL for online payments
+
     private List<OrderItemResponseDTO> orderItems;
 }

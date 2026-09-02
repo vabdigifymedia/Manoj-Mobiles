@@ -42,5 +42,9 @@ public class Payment {
 
     private String txnId;
 
+    private String pgTransactionId; // Pine Labs order/transaction ID
+
+    private String paymentMode; // UPI, CREDIT_CARD, DEBIT_CARD etc.
+
     private LocalDateTime paidAt;
 }
