@@ -73,13 +73,13 @@ public class PineLabsPaymentServiceTest {
         ResponseEntity<Map<String, Object>> mockResponseEntity = new ResponseEntity<>(mockResponseMap, HttpStatus.OK);
 
         when(restTemplate.exchange(
-                eq("https://mock-url.com/api/pay/v1/orders"),
+                eq("https://mock-url.com/api/checkout/v1/orders"),
                 eq(HttpMethod.POST),
                 ArgumentMatchers.<HttpEntity<?>>any(),
                 ArgumentMatchers.<org.springframework.core.ParameterizedTypeReference<Map<String, Object>>>any()
         )).thenReturn(mockResponseEntity);
 
-        String redirectUrl = pineLabsPaymentService.createPaymentOrder(order, payment, "https://mock-frontend.com/success");
+        String redirectUrl = pineLabsPaymentService.createPaymentOrder(order, payment, "http://localhost:3000/success");
 
         assertEquals("https://checkout.url", redirectUrl);
         assertEquals("pine-order-123", payment.getPgTransactionId());

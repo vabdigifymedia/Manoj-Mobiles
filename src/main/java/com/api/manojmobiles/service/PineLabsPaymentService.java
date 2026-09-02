@@ -56,14 +56,19 @@ public class PineLabsPaymentService {
             Map<String, Object> body = new HashMap<>();
             body.put("merchant_order_reference", order.getOrderNumber());
             body.put("order_amount", orderAmount);
-            if (returnUrl != null && !returnUrl.isEmpty()) {
-                body.put("return_url", returnUrl);
+            if (returnUrl != null && !returnUrl.trim().isEmpty()) {
+                // AWS CloudFront WAF on Pine Labs blocks requests containing "localhost" or "127.0.0.1" (SSRF protection).
+                // Replace localhost / 127.0.0.1 with lvh.me (a public domain that resolves to 127.0.0.1 locally).
+                String sanitizedReturnUrl = returnUrl.trim()
+                        .replace("://localhost", "://lvh.me")
+                        .replace("://127.0.0.1", "://lvh.me");
+                body.put("return_url", sanitizedReturnUrl);
             }
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
             ResponseEntity<Map<String, Object>> response = pineLabsRestTemplate.exchange(
-                    pineLabsConfig.getBaseUrl() + "/api/pay/v1/orders",
+                    pineLabsConfig.getBaseUrl() + "/api/checkout/v1/orders",
                     HttpMethod.POST,
                     request,
                     new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
@@ -74,10 +79,17 @@ public class PineLabsPaymentService {
                 throw new BadRequestException("Empty response from Pine Labs");
             }
 
-            String plOrderId = responseBody.get("order_id") != null 
-                    ? responseBody.get("order_id").toString() : null;
-            String redirectUrl = responseBody.get("redirect_url") != null 
-                    ? responseBody.get("redirect_url").toString() : null;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (responseBody.containsKey("data") && responseBody.get("data") instanceof Map)
+                    ? (Map<String, Object>) responseBody.get("data")
+                    : responseBody;
+
+            String plOrderId = data.get("order_id") != null 
+                    ? data.get("order_id").toString() 
+                    : (responseBody.get("order_id") != null ? responseBody.get("order_id").toString() : null);
+            String redirectUrl = data.get("redirect_url") != null 
+                    ? data.get("redirect_url").toString() 
+                    : (responseBody.get("redirect_url") != null ? responseBody.get("redirect_url").toString() : null);
 
             // Store the Pine Labs order ID in our Payment entity
             if (plOrderId != null) {
@@ -130,8 +142,14 @@ public class PineLabsPaymentService {
                 return;
             }
 
-            String status = responseBody.get("status") != null 
-                    ? responseBody.get("status").toString() : "UNKNOWN";
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (responseBody.containsKey("data") && responseBody.get("data") instanceof Map)
+                    ? (Map<String, Object>) responseBody.get("data")
+                    : responseBody;
+
+            String status = data.get("status") != null 
+                    ? data.get("status").toString() 
+                    : (responseBody.get("status") != null ? responseBody.get("status").toString() : "UNKNOWN");
             log.info("Pine Labs status for order {}: {}", pgOrderId, status);
 
             Order order = payment.getOrder();
