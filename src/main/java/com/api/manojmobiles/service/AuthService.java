@@ -45,9 +45,9 @@ public class AuthService {
      * Send OTP to a phone number.
      * Delegates to OtpService which stores in Redis with configurable TTL.
      */
-    public void sendOtp(String phone) {
+    public String sendOtp(String phone) {
         // Allow pre-registration OTP by not checking if user exists
-        otpService.generateOtp(phone);
+        return otpService.generateOtp(phone);
     }
 
     // Customer Authentication

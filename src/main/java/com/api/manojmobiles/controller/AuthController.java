@@ -104,8 +104,8 @@ public class AuthController {
                 redisProperties.getRate().getOtpLimit(),
                 redisProperties.getRate().getOtpWindow());
 
-        authService.sendOtp(requestBody.getPhone());
-        return ResponseEntity.ok(ApiResponse.success("OTP sent successfully", null));
+        String otp = authService.sendOtp(requestBody.getPhone());
+        return ResponseEntity.ok(ApiResponse.success("OTP sent successfully", otp));
     }
 
 
