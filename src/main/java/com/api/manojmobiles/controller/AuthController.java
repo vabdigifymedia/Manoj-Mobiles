@@ -94,7 +94,7 @@ public class AuthController {
 
     @Operation(summary = "Send OTP", description = "Sends an OTP to the customer's phone number")
     @PostMapping("/send-otp")
-    public ResponseEntity<ApiResponse<Void>> sendOtp(
+    public ResponseEntity<ApiResponse<String>> sendOtp(
             @Valid @RequestBody SendOtpRequestDTO requestBody,
             HttpServletRequest request) {
 
