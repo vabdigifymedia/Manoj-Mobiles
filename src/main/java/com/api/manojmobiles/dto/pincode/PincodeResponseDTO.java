@@ -19,4 +19,5 @@ public class PincodeResponseDTO {
     private String state;
     private Integer estimatedDeliveryDays;
     private Boolean codAvailable;
+    private Boolean isActive;
 }

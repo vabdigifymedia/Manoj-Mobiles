@@ -9,6 +9,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,10 +39,21 @@ public class AdminCityController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all cities")
-    public ResponseEntity<ApiResponse<List<CityResponseDTO>>> getAllCities() {
-        List<CityResponseDTO> cities = cityService.getAllCities();
+    @Operation(summary = "Get all cities with pagination and search")
+    public ResponseEntity<ApiResponse<Page<CityResponseDTO>>> getAllCities(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+        Page<CityResponseDTO> cities = cityService.getAllCities(search, pageable);
         return ResponseEntity.ok(ApiResponse.success("Cities fetched successfully", cities));
+    }
+
+    @GetMapping("/active")
+    @Operation(summary = "Get all active cities (unpaginated for dropdowns)")
+    public ResponseEntity<ApiResponse<List<CityResponseDTO>>> getActiveCities() {
+        List<CityResponseDTO> cities = cityService.getActiveCities();
+        return ResponseEntity.ok(ApiResponse.success("Active cities fetched successfully", cities));
     }
 
     @GetMapping("/{id}")

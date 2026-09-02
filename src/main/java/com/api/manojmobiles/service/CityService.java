@@ -9,6 +9,8 @@ import com.api.manojmobiles.exception.ResourceNotFoundException;
 import com.api.manojmobiles.repository.CityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +46,12 @@ public class CityService {
         return cityRepository.findAll().stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CityResponseDTO> getAllCities(String search, Pageable pageable) {
+        return cityRepository.searchCities(search, pageable)
+                .map(this::mapToDTO);
     }
 
     @Transactional(readOnly = true)

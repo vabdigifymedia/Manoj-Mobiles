@@ -28,4 +28,7 @@ public class CreatePincodeRequestDTO {
 
     @Builder.Default
     private Boolean codAvailable = true;
+
+    @Builder.Default
+    private Boolean isActive = true;
 }

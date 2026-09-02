@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -77,11 +78,15 @@ public class OrderService {
             throw new BadRequestException("Address does not belong to user");
         }
 
-        // 3. Serviceability Check
-        ServiceablePincode pincode = pincodeRepository.findByPincode(address.getPincode())
-                .orElseThrow(() -> new BadRequestException("Delivery is not serviceable to pincode: " + address.getPincode()));
+        // 3. Expected Delivery Calculation (All-India Delivery via Shiprocket)
+        // Local ServiceablePincode is used if available for local deliveries; otherwise gracefully fallback to standard delivery estimate (5 days)
+        Optional<ServiceablePincode> localPincode = pincodeRepository.findByPincode(address.getPincode());
+        int deliveryDays = localPincode
+                .filter(p -> Boolean.TRUE.equals(p.getIsActive()))
+                .map(p -> p.getEstimatedDeliveryDays() != null && p.getEstimatedDeliveryDays() > 0 ? p.getEstimatedDeliveryDays() : 5)
+                .orElse(5);
 
-        LocalDateTime expectedDelivery = LocalDateTime.now().plusDays(pincode.getEstimatedDeliveryDays());
+        LocalDateTime expectedDelivery = LocalDateTime.now().plusDays(deliveryDays);
 
         // 4. Create Order Object
         Order order = Order.builder()
