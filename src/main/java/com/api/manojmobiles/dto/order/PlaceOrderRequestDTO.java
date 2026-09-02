@@ -22,4 +22,6 @@ public class PlaceOrderRequestDTO {
     private PaymentMethod paymentMethod;
 
     private String couponCode;
+
+    private String returnUrl;
 }

@@ -33,7 +33,7 @@ public class PineLabsPaymentService {
      * Creates a Pine Labs order and returns the checkout redirect URL.
      * Amount is sent in paisa (INR smallest unit) as per Pine Labs API spec.
      */
-    public String createPaymentOrder(Order order, Payment payment) {
+    public String createPaymentOrder(Order order, Payment payment, String returnUrl) {
         try {
             String token = pineLabsConfig.getAccessToken();
 
@@ -53,6 +53,9 @@ public class PineLabsPaymentService {
             Map<String, Object> body = new HashMap<>();
             body.put("merchant_order_reference", order.getOrderNumber());
             body.put("order_amount", orderAmount);
+            if (returnUrl != null && !returnUrl.isEmpty()) {
+                body.put("return_url", returnUrl);
+            }
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 

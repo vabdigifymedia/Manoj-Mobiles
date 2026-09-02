@@ -202,7 +202,7 @@ public class OrderService {
         // 11. Generate Pine Labs Payment Link for non-COD orders
         String paymentUrl = null;
         if (request.getPaymentMethod() != PaymentMethod.COD) {
-            paymentUrl = pineLabsPaymentService.createPaymentOrder(order, payment);
+            paymentUrl = pineLabsPaymentService.createPaymentOrder(order, payment, request.getReturnUrl());
         }
 
         OrderResponseDTO responseDTO = mapToDTO(order, orderItems, payment, expectedDelivery);

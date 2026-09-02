@@ -79,7 +79,7 @@ public class PineLabsPaymentServiceTest {
                 ArgumentMatchers.<org.springframework.core.ParameterizedTypeReference<Map<String, Object>>>any()
         )).thenReturn(mockResponseEntity);
 
-        String redirectUrl = pineLabsPaymentService.createPaymentOrder(order, payment);
+        String redirectUrl = pineLabsPaymentService.createPaymentOrder(order, payment, "https://mock-frontend.com/success");
 
         assertEquals("https://checkout.url", redirectUrl);
         assertEquals("pine-order-123", payment.getPgTransactionId());
