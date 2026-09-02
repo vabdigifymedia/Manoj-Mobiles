@@ -40,6 +40,7 @@ public class PineLabsPaymentService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(token);
+            headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
             // Pine Labs expects amount in smallest currency unit (paisa for INR)
             int amountInPaisa = order.getTotalAmount()
@@ -108,6 +109,7 @@ public class PineLabsPaymentService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
+            headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
             HttpEntity<Void> request = new HttpEntity<>(headers);
 
