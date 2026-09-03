@@ -154,7 +154,8 @@ public class PineLabsPaymentService {
 
             Order order = payment.getOrder();
 
-            if ("CHARGED".equalsIgnoreCase(status) || "CAPTURED".equalsIgnoreCase(status)) {
+            if ("CHARGED".equalsIgnoreCase(status) || "CAPTURED".equalsIgnoreCase(status) 
+                    || "PROCESSED".equalsIgnoreCase(status) || "SUCCESS".equalsIgnoreCase(status)) {
                 payment.setStatus(PaymentStatus.SUCCESS);
                 payment.setPaidAt(LocalDateTime.now());
                 payment.setTxnId(pgOrderId);
