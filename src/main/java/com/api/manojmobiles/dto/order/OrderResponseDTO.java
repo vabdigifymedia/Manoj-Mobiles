@@ -1,6 +1,7 @@
 package com.api.manojmobiles.dto.order;
 
 import com.api.manojmobiles.dto.address.AddressResponseDTO;
+import com.api.manojmobiles.entity.enums.DeliveryType;
 import com.api.manojmobiles.entity.enums.OrderStatus;
 import com.api.manojmobiles.entity.enums.PaymentMethod;
 import com.api.manojmobiles.entity.enums.PaymentStatus;
@@ -23,6 +24,12 @@ public class OrderResponseDTO {
     private String orderNumber;
     private OrderStatus orderStatus;
     
+    private DeliveryType deliveryType;
+    private String trackingId;
+    private String courierPartner;
+    
+    private DeliveryPartnerInfoDTO deliveryPartnerInfo;
+
     private AddressResponseDTO address;
     
     private BigDecimal totalAmount;

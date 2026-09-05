@@ -47,4 +47,13 @@ public class AdminOrderController {
         OrderResponseDTO updatedOrder = orderService.updateOrderStatus(orderId, request.getStatus(), request.getNote(), principal.getName());
         return ResponseEntity.ok(ApiResponse.success("Order status updated successfully.", updatedOrder));
     }
+
+    @PostMapping("/{orderId}/assign-partner")
+    @Operation(summary = "Assign a delivery partner to a hyperlocal order")
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> assignDeliveryPartner(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody com.api.manojmobiles.dto.order.AssignDeliveryPartnerRequestDTO request) {
+        OrderResponseDTO updatedOrder = orderService.assignDeliveryPartner(orderId, request);
+        return ResponseEntity.ok(ApiResponse.success("Delivery partner assigned successfully.", updatedOrder));
+    }
 }

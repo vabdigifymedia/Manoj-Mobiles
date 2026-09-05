@@ -3,8 +3,8 @@ package com.api.manojmobiles.controller;
 import com.api.manojmobiles.dto.ApiResponse;
 import com.api.manojmobiles.dto.order.OrderResponseDTO;
 import com.api.manojmobiles.dto.order.PlaceOrderRequestDTO;
-import com.api.manojmobiles.dto.delivery.LocationResponseDTO;
-import com.api.manojmobiles.service.DeliveryService;
+import com.api.manojmobiles.dto.order.LiveLocationResponseDTO;
+import com.api.manojmobiles.service.LiveLocationService;
 import com.api.manojmobiles.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,7 +30,7 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
-    private final DeliveryService deliveryService;
+    private final LiveLocationService liveLocationService;
 
     @PostMapping
     @Operation(summary = "Place a new order")
@@ -80,12 +80,18 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", cancelledOrder));
     }
 
-    @GetMapping("/{orderId}/track")
+    @GetMapping("/{orderId}/live-location")
     @Operation(summary = "Track the live location of an OUT_FOR_DELIVERY order")
-    public ResponseEntity<ApiResponse<LocationResponseDTO>> trackOrderLocation(
+    public ResponseEntity<ApiResponse<LiveLocationResponseDTO>> getLiveLocation(
             Principal principal,
             @PathVariable UUID orderId) {
-        LocationResponseDTO location = deliveryService.trackOrderLocation(principal.getName(), orderId);
-        return ResponseEntity.ok(ApiResponse.success("Location fetched successfully", location));
+        // First verify user owns this order
+        orderService.getOrderById(principal.getName(), orderId);
+        
+        LiveLocationResponseDTO location = liveLocationService.getLiveLocation(orderId);
+        if (location == null) {
+            return ResponseEntity.ok(ApiResponse.success("Live location not available yet", null));
+        }
+        return ResponseEntity.ok(ApiResponse.success("Live location fetched successfully", location));
     }
 }

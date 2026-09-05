@@ -51,6 +51,8 @@ public class OrderService {
     private final CouponService couponService;
     private final NotificationService notificationService;
     private final PineLabsPaymentService pineLabsPaymentService;
+    private final DeliveryPartnerRepository deliveryPartnerRepository;
+    private final GoogleMapsService googleMapsService;
 
     @Transactional
     public OrderResponseDTO placeOrder(String username, PlaceOrderRequestDTO request) {
@@ -78,15 +80,14 @@ public class OrderService {
             throw new BadRequestException("Address does not belong to user");
         }
 
-        // 3. Expected Delivery Calculation (All-India Delivery via Shiprocket)
-        // Local ServiceablePincode is used if available for local deliveries; otherwise gracefully fallback to standard delivery estimate (5 days)
+        // 3. Expected Delivery Calculation & Delivery Type
         Optional<ServiceablePincode> localPincode = pincodeRepository.findByPincode(address.getPincode());
-        int deliveryDays = localPincode
-                .filter(p -> Boolean.TRUE.equals(p.getIsActive()))
-                .map(p -> p.getEstimatedDeliveryDays() != null && p.getEstimatedDeliveryDays() > 0 ? p.getEstimatedDeliveryDays() : 5)
-                .orElse(5);
-
+        boolean isLocal = localPincode.isPresent() && Boolean.TRUE.equals(localPincode.get().getIsActive());
+        
+        int deliveryDays = isLocal ? (localPincode.get().getEstimatedDeliveryDays() != null && localPincode.get().getEstimatedDeliveryDays() > 0 ? localPincode.get().getEstimatedDeliveryDays() : 1) : 5;
         LocalDateTime expectedDelivery = LocalDateTime.now().plusDays(deliveryDays);
+        
+        com.api.manojmobiles.entity.enums.DeliveryType deliveryType = isLocal ? com.api.manojmobiles.entity.enums.DeliveryType.HYPERLOCAL : com.api.manojmobiles.entity.enums.DeliveryType.STANDARD;
 
         // 4. Create Order Object
         Order order = Order.builder()
@@ -95,6 +96,10 @@ public class OrderService {
                 .orderStatus(OrderStatus.PLACED)
                 .placedAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .deliveryType(deliveryType)
+                .expectedDeliveryDate(expectedDelivery)
+                .shippingLat(address.getLat())
+                .shippingLng(address.getLng())
                 .deliveryCharge(BigDecimal.ZERO) // Free Delivery Rule
                 .discountAmount(BigDecimal.ZERO) // Coupon out of scope
                 .totalAmount(BigDecimal.ZERO)
@@ -210,9 +215,44 @@ public class OrderService {
             paymentUrl = pineLabsPaymentService.createPaymentOrder(order, payment, request.getReturnUrl());
         }
 
-        OrderResponseDTO responseDTO = mapToDTO(order, orderItems, payment, expectedDelivery);
+        OrderResponseDTO responseDTO = mapToDTO(order, orderItems, payment);
         responseDTO.setPaymentUrl(paymentUrl);
         return responseDTO;
+    }
+
+    @Transactional
+    public OrderResponseDTO assignDeliveryPartner(UUID orderId, com.api.manojmobiles.dto.order.AssignDeliveryPartnerRequestDTO request) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getDeliveryType() != com.api.manojmobiles.entity.enums.DeliveryType.HYPERLOCAL) {
+            throw new BadRequestException("Only hyperlocal orders can be assigned a delivery partner");
+        }
+
+        DeliveryPartner partner = deliveryPartnerRepository.findById(request.getDeliveryPartnerId())
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery Partner not found"));
+
+        order.setDeliveryPartner(partner);
+        
+        // Calculate ETA
+        Double storeLat = 28.5355; // Manoj Mobiles Store Lat (Noida)
+        Double storeLng = 77.3910; // Manoj Mobiles Store Lng (Noida)
+        LocalDateTime eta = googleMapsService.calculateETA(storeLat, storeLng, order.getShippingLat(), order.getShippingLng());
+        order.setExpectedDeliveryDate(eta);
+        order.setOrderStatus(OrderStatus.OUT_FOR_DELIVERY);
+        order.setUpdatedAt(LocalDateTime.now());
+        
+        order = orderRepository.save(order);
+        
+        // Send Notification
+        notificationService.createNotification(
+                order.getUser(),
+                "Out for Delivery",
+                "Your order is out for delivery. Expected time: " + eta.format(DateTimeFormatter.ofPattern("hh:mm a")),
+                NotificationType.ORDER_UPDATE
+        );
+
+        return mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null));
     }
 
     @Transactional
@@ -283,7 +323,7 @@ public class OrderService {
                 NotificationType.ORDER_UPDATE
         );
 
-        return mapToDTO(order, order.getOrderItems(), payment, null);
+        return mapToDTO(order, order.getOrderItems(), payment);
     }
 
     @Transactional
@@ -327,7 +367,7 @@ public class OrderService {
                 NotificationType.ORDER_UPDATE
         );
 
-        return mapToDTO(order, order.getOrderItems(), payment, null); // We can calculate delivery again if needed, or omit for now
+        return mapToDTO(order, order.getOrderItems(), payment);
     }
 
     @Transactional(readOnly = true)
@@ -337,7 +377,7 @@ public class OrderService {
                         .orElseThrow(() -> new ResourceNotFoundException("User not found")));
         
         return orderRepository.findByUserIdOrderByPlacedAtDesc(user.getId(), pageable)
-                .map(order -> mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null), null));
+                .map(order -> mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null)));
     }
 
     @Transactional(readOnly = true)
@@ -353,13 +393,13 @@ public class OrderService {
             throw new org.springframework.security.access.AccessDeniedException("You do not have access to this order");
         }
 
-        return mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null), null);
+        return mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null));
     }
 
     @Transactional(readOnly = true)
     public Page<OrderResponseDTO> getAllOrders(Pageable pageable) {
         return orderRepository.findAll(pageable)
-                .map(order -> mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null), null));
+                .map(order -> mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null)));
     }
 
     @Transactional
@@ -388,7 +428,7 @@ public class OrderService {
                 NotificationType.ORDER_UPDATE
         );
 
-        return mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null), null);
+        return mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null));
     }
 
     private String generateOrderNumber() {
@@ -401,7 +441,7 @@ public class OrderService {
         return orderNumber;
     }
 
-    private OrderResponseDTO mapToDTO(Order order, List<OrderItem> items, Payment payment, LocalDateTime expectedDelivery) {
+    private OrderResponseDTO mapToDTO(Order order, List<OrderItem> items, Payment payment) {
         List<OrderItemResponseDTO> itemDTOs = new ArrayList<>();
         if (items != null) {
             itemDTOs = items.stream().map(item -> OrderItemResponseDTO.builder()
@@ -442,7 +482,17 @@ public class OrderService {
                 .txnId(payment != null ? payment.getTxnId() : null)
                 .paidAt(payment != null ? payment.getPaidAt() : null)
                 .placedAt(order.getPlacedAt())
-                .expectedDeliveryDate(expectedDelivery) // Could be null on fetch unless we persist it or fetch pincode again
+                .deliveryType(order.getDeliveryType())
+                .trackingId(order.getTrackingId())
+                .courierPartner(order.getCourierPartner())
+                .expectedDeliveryDate(order.getExpectedDeliveryDate())
+                .deliveryPartnerInfo(order.getDeliveryPartner() != null ? 
+                        com.api.manojmobiles.dto.order.DeliveryPartnerInfoDTO.builder()
+                                .id(order.getDeliveryPartner().getId())
+                                .name(order.getDeliveryPartner().getName())
+                                .phone(order.getDeliveryPartner().getPhone())
+                                .vehicleNo(order.getDeliveryPartner().getVehicleNo())
+                                .build() : null)
                 .orderItems(itemDTOs)
                 .build();
     }

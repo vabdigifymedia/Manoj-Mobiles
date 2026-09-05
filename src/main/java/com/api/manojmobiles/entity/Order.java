@@ -60,6 +60,21 @@ public class Order {
     private LocalDateTime placedAt;
     private LocalDateTime updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    private DeliveryType deliveryType;
+
+    private String trackingId;
+    private String courierPartner;
+
+    private LocalDateTime expectedDeliveryDate;
+
+    private Double shippingLat;
+    private Double shippingLng;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "delivery_partner_id")
+    private DeliveryPartner deliveryPartner;
+
     @OneToMany(mappedBy = "order") private List<OrderItem> orderItems;
     @OneToMany(mappedBy = "order") private List<OrderStatusHistory> statusHistory;
     @OneToOne(mappedBy = "order") private Payment payment;
