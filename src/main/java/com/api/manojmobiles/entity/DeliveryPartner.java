@@ -30,4 +30,7 @@ public class DeliveryPartner {
 
     @Builder.Default
     private Boolean isActive = true;
+
+    @org.hibernate.annotations.CreationTimestamp
+    private java.time.LocalDateTime createdAt;
 }
