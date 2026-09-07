@@ -38,6 +38,13 @@ public class AdminOrderController {
         return ResponseEntity.ok(ApiResponse.success("All orders fetched successfully", orders));
     }
 
+    @GetMapping("/{orderId}")
+    @Operation(summary = "Get order by ID (Admin)")
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrderById(@PathVariable UUID orderId) {
+        OrderResponseDTO order = orderService.getOrderByIdForAdmin(orderId);
+        return ResponseEntity.ok(ApiResponse.success("Order fetched successfully.", order));
+    }
+
     @PutMapping("/{orderId}/status")
     @Operation(summary = "Update order status")
     public ResponseEntity<ApiResponse<OrderResponseDTO>> updateOrderStatus(

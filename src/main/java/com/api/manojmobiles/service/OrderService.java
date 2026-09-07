@@ -397,6 +397,14 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    public OrderResponseDTO getOrderByIdForAdmin(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        
+        return mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null));
+    }
+
+    @Transactional(readOnly = true)
     public Page<OrderResponseDTO> getAllOrders(Pageable pageable) {
         return orderRepository.findAll(pageable)
                 .map(order -> mapToDTO(order, order.getOrderItems(), paymentRepository.findByOrderId(order.getId()).orElse(null)));
