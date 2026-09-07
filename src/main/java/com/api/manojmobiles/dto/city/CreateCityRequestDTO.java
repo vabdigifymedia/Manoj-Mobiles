@@ -19,4 +19,7 @@ public class CreateCityRequestDTO {
 
     @Builder.Default
     private Boolean isActive = true;
+
+    @Builder.Default
+    private com.api.manojmobiles.entity.enums.CityCoverageRule coverageRule = com.api.manojmobiles.entity.enums.CityCoverageRule.ALL;
 }

@@ -27,6 +27,10 @@ public class City {
 
     private Boolean isActive;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private com.api.manojmobiles.entity.enums.CityCoverageRule coverageRule = com.api.manojmobiles.entity.enums.CityCoverageRule.ALL;
+
     @OneToMany(mappedBy = "city")
     private List<ServiceablePincode> pincodes;
 }

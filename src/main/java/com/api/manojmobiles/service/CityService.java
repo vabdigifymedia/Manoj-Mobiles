@@ -35,6 +35,7 @@ public class CityService {
                 .name(request.getName())
                 .state(request.getState())
                 .isActive(request.getIsActive() != null ? request.getIsActive() : true)
+                .coverageRule(request.getCoverageRule() != null ? request.getCoverageRule() : com.api.manojmobiles.entity.enums.CityCoverageRule.ALL)
                 .build();
 
         city = cityRepository.save(city);
@@ -85,6 +86,10 @@ public class CityService {
         if (request.getIsActive() != null) {
             city.setIsActive(request.getIsActive());
         }
+        
+        if (request.getCoverageRule() != null) {
+            city.setCoverageRule(request.getCoverageRule());
+        }
 
         city = cityRepository.save(city);
         return mapToDTO(city);
@@ -109,6 +114,7 @@ public class CityService {
                 .name(city.getName())
                 .state(city.getState())
                 .isActive(city.getIsActive())
+                .coverageRule(city.getCoverageRule())
                 .totalPincodesCount(pincodeCount)
                 .build();
     }

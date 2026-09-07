@@ -16,5 +16,6 @@ public class CityResponseDTO {
     private String name;
     private String state;
     private Boolean isActive;
+    private com.api.manojmobiles.entity.enums.CityCoverageRule coverageRule;
     private long totalPincodesCount;
 }

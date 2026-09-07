@@ -18,4 +18,6 @@ public class UpdateCityRequestDTO {
     private String state;
 
     private Boolean isActive;
+    
+    private com.api.manojmobiles.entity.enums.CityCoverageRule coverageRule;
 }
