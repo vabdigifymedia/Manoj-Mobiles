@@ -47,10 +47,10 @@ public class AdminDeliveryPartnerController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
-        
+
         Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         Page<DeliveryPartnerResponseDTO> response = deliveryPartnerService.getAllDeliveryPartners(search, pageable);
         return ResponseEntity.ok(ApiResponse.success("Delivery partners fetched successfully", response));
     }
