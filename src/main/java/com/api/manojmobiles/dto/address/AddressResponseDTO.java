@@ -18,4 +18,6 @@ public class AddressResponseDTO {
     private String state;
     private String pincode;
     private Boolean isDefault;
+    private Double lat;
+    private Double lng;
 }
