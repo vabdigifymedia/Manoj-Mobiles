@@ -50,6 +50,9 @@ public class StoreSetting {
     @Builder.Default
     private String expressDeliveryText = "Get delivery within 2 hours in selected pin codes";
 
+    private Double storeLat;
+    private Double storeLng;
+
     @UpdateTimestamp
     private Instant updatedAt;
 }

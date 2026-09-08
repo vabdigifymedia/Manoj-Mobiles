@@ -4,6 +4,8 @@ import com.api.manojmobiles.dto.ApiResponse;
 import com.api.manojmobiles.dto.order.OrderResponseDTO;
 import com.api.manojmobiles.dto.order.UpdateOrderStatusRequestDTO;
 import com.api.manojmobiles.service.OrderService;
+import com.api.manojmobiles.service.LiveLocationService;
+import com.api.manojmobiles.dto.order.LiveLocationResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,6 +29,7 @@ import java.util.UUID;
 public class AdminOrderController {
 
     private final OrderService orderService;
+    private final LiveLocationService liveLocationService;
 
     @GetMapping
     @Operation(summary = "Get all orders with pagination")
@@ -62,5 +65,17 @@ public class AdminOrderController {
             @Valid @RequestBody com.api.manojmobiles.dto.order.AssignDeliveryPartnerRequestDTO request) {
         OrderResponseDTO updatedOrder = orderService.assignDeliveryPartner(orderId, request);
         return ResponseEntity.ok(ApiResponse.success("Delivery partner assigned successfully.", updatedOrder));
+    }
+
+    @GetMapping("/{orderId}/live-location")
+    @Operation(summary = "Track the live location of an OUT_FOR_DELIVERY order")
+    public ResponseEntity<ApiResponse<LiveLocationResponseDTO>> getLiveLocation(
+            @PathVariable UUID orderId) {
+        
+        LiveLocationResponseDTO location = liveLocationService.getLiveLocation(orderId);
+        if (location == null) {
+            return ResponseEntity.ok(ApiResponse.success("Live location not available yet", null));
+        }
+        return ResponseEntity.ok(ApiResponse.success("Live location fetched successfully", location));
     }
 }

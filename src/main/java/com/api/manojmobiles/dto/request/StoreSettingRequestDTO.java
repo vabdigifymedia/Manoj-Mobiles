@@ -24,4 +24,7 @@ public class StoreSettingRequestDTO {
 
     private BigDecimal freeDeliveryThreshold;
     private String expressDeliveryText;
+
+    private Double storeLat;
+    private Double storeLng;
 }

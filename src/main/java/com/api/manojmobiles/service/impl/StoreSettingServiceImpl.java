@@ -46,6 +46,8 @@ public class StoreSettingServiceImpl implements StoreSettingService {
         setting.setGoogleMapsUrl(dto.getGoogleMapsUrl());
         setting.setFreeDeliveryThreshold(dto.getFreeDeliveryThreshold());
         setting.setExpressDeliveryText(dto.getExpressDeliveryText());
+        setting.setStoreLat(dto.getStoreLat());
+        setting.setStoreLng(dto.getStoreLng());
 
         return mapToDTO(storeSettingRepository.save(setting));
     }
@@ -66,6 +68,8 @@ public class StoreSettingServiceImpl implements StoreSettingService {
         dto.setGoogleMapsUrl(s.getGoogleMapsUrl());
         dto.setFreeDeliveryThreshold(s.getFreeDeliveryThreshold());
         dto.setExpressDeliveryText(s.getExpressDeliveryText());
+        dto.setStoreLat(s.getStoreLat());
+        dto.setStoreLng(s.getStoreLng());
         dto.setUpdatedAt(s.getUpdatedAt());
         return dto;
     }

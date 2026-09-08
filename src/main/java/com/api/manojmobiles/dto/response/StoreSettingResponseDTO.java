@@ -21,5 +21,7 @@ public class StoreSettingResponseDTO {
     private String googleMapsUrl;
     private BigDecimal freeDeliveryThreshold;
     private String expressDeliveryText;
+    private Double storeLat;
+    private Double storeLng;
     private Instant updatedAt;
 }
