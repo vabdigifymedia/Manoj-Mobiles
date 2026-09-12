@@ -2,6 +2,12 @@ server:
   port: ${SERVER_PORT:8080}
 
 spring:
+  ai:
+    vertex:
+      ai:
+        gemini:
+          api-key: ${GEMINI_API_KEY:your-key-here}
+
   application:
     name: manojmobiles
 

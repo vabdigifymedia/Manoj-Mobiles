@@ -1,0 +1,11 @@
+package com.api.manojmobiles.dto.request;
+
+import lombok.Data;
+import java.util.List;
+import java.util.Map;
+
+@Data
+public class AiChatRequest {
+    private String message;
+    private List<Map<String, Object>> history;
+}
