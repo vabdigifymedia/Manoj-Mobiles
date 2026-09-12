@@ -6,7 +6,7 @@ spring:
     vertex:
       ai:
         gemini:
-          api-key: ${GEMINI_API_KEY:your-key-here}
+          api-key: ${GEMINI_API_KEY}
 
   application:
     name: manojmobiles
