@@ -10,6 +10,8 @@ services:
       - manojmobiles-network
     env_file:
       - .env
+    volumes:
+      - ./gcp-key.json:/app/gcp-key.json:ro
     depends_on:
       postgres:
         condition: service_healthy

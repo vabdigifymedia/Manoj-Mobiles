@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "manoj-mobiles",
+  "private_key_id": "59b99479ab35a930c5c3f5c7dd2c476a430d1442",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC35N9h+Tf0dipx\nP8/b8NcG/GxyECr0iqelAuS128jZ2BD8Nwfik0Z7zS3r6hZh7GFyBy6eMGy+2gZz\nHC5WViesOE+Vv/r08iIsJ13HCLRVCOSrNohvaIzLP4XkxtVUrh4Ryp1HPgIwsQo2\nvkBh+ECcKdtUORqxYjVB2TsiufJFtXrdqP5NB0UlRhSsXb5SZCWdInDHuaILjf4G\nXY4SIY4SYHiWqwT8r2skBP8lAJiHuxOv5Oqr6zd9wGJxBqxBXtD9TPUU0edKKchE\nJurdiZbidTHpjdg9F5FE5+Nw5VlgOsc+N2qLwzl5I4pXHteXzJABKqXMXp8K3kc0\nV7fCz/YbAgMBAAECggEACmoQSoyiIhqVEb/S5jpP+ynNfHI09I9rqhktWa0+RTQK\n1jXJoQfFLJq0mJEzvkz0QdBtT/EfH3nadqdoamRLr+GqhCkQrdGOpOB/25c/Gze7\nN4UJmgGaQ6Jv00J9b2PC+S/300KMPjSwhuQkYkf8ZLusG6t2Owh8SqPiSPet5Eun\nuStrtNAHqvOKGgvv1iEyNXAmyKZlYH3xuf1sz9jJXuKLIDZEB67/BgfUjg0XBLNQ\nWZdQi0mPWufX0vHFOS3ulazb0tvTXB940xMyL/PKhMZ24FGgsrFxQXNczrkc0pFo\nmB3XmY1i0MXpZA1Zq/PYlSK8FRsZQtF1OHpBtAKN6QKBgQDfXAGdULsJ3yqmNgjr\n/BP4w6Q0Ty4u+/LLzxl0BaZbFgV38jjEHkQ+C73pBuRFa8Sejz/yPupbv1iwsfPI\nGUegBFkmX5Z3hVOgG7yhIkXJsKvVY/4iNMUzWHXvHNxR0gd3KnZZalzXCY8dzr7k\n+oQbmiBezHBZknbdu7BqRCfpWQKBgQDSxHIsYEuCNzqR6MrYeKkPdQGnBCMoXnTv\nPvI+COwYjnwKa07jGd+FucH+XS2ZGT/yW5tFJzpodGp40oSnUwRGI+12O5W1pNgF\n1vRbhEsdaFjIuUH5rLao6BdxEDQ9NJYS02ex89fSnMbvy1UsFYFAxq+yyKtf/zM6\n2UnuzvW4kwKBgQCNNoQmy5WU5iz2rI7zc4nE6xvznmPafJvCUwsKmU/VopSOgut0\nwpXujEni++JyKXJDtNl+9FwC6XTPMZKo3aK0/krGwgRFSFvYi/C0BxEMNNBOt0tC\noQ5UKgdVx29bo2fo5UWxvlc39OkwtTdnWSMQuF7i0Gnvl3PjN/iPFswM8QKBgD7r\n0J343XHxZPXcRnpbgzUPHEAtFwXdNRGbfBwS89Dc8KD3qiRYPAejDgwO6ybyh8ml\nmXQKowA+CO8rAdkmCneaEDEk1qvUm30az/ZmRzpvRVofHFgaPKmuKBlj2gSPp2HV\nZPaWMk846Jb73+B6Rwz8g8Ve7PKKsFOYPN8jP+4rAoGBAMM9+FXudxCFGqlv6v20\nx4v+G9WZ0W0VLhz5ZCfg7deRMRUAg38lbTjagrp5IXds73ZNzoi57zp28txU2yHj\n14SBnEFR0113SqcIisyR6jYeK7RsKB033zAOlmSadLGRO59hAW2s7BueGYOH+YRP\nvxcjTrCTim5vzZ3dreL/M6mg\n-----END PRIVATE KEY-----\n",
+  "client_email": "vertex-ai-service-account@manoj-mobiles.iam.gserviceaccount.com",
+  "client_id": "112299790986238391513",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/vertex-ai-service-account%40manoj-mobiles.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
