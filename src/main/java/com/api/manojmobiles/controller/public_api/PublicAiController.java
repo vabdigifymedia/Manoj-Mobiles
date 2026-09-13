@@ -2,7 +2,8 @@ package com.api.manojmobiles.controller.public_api;
 
 import com.api.manojmobiles.config.RedisProperties;
 import com.api.manojmobiles.dto.ApiResponse;
-import com.api.manojmobiles.dto.request.AiChatRequest;
+import com.api.manojmobiles.dto.manojAi.AiChatRequest;
+import com.api.manojmobiles.dto.manojAi.AiChatResponse;
 import com.api.manojmobiles.service.RateLimiterService;
 import com.api.manojmobiles.service.ai.AiChatService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,8 +11,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/public/ai")
@@ -31,7 +30,7 @@ public class PublicAiController {
     }
 
     @PostMapping("/chat")
-    public ResponseEntity<ApiResponse<String>> chat(@Valid @RequestBody AiChatRequest aiChatRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<AiChatResponse>> chat(@Valid @RequestBody AiChatRequest aiChatRequest, HttpServletRequest request) {
 
         String ip = getClientIp(request);
         String rateLimitKey = "rate:chat:" + ip;
@@ -41,7 +40,16 @@ public class PublicAiController {
                 redisProperties.getRate().getLoginLimit(),
                 redisProperties.getRate().getLoginWindow()
         );
-        String response = aiChatService.chat(aiChatRequest.getMessage());
+
+        String aiResponse = aiChatService.chat(
+                aiChatRequest.getChatId(),
+                aiChatRequest.getMessage()
+        );
+
+        AiChatResponse response = AiChatResponse.builder()
+                .chatId(aiChatRequest.getChatId())
+                .message(aiResponse)
+                .build();
 
         return ResponseEntity.ok(ApiResponse.success("Success", response));
     }

@@ -1,17 +1,16 @@
 package com.api.manojmobiles.service.ai;
 
-import com.api.manojmobiles.exception.BadRequestException;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class AiChatService {
 
     private final ChatClient chatClient;
 
-    public AiChatService(ChatClient.Builder chatClientBuilder) {
+    public AiChatService(ChatClient.Builder chatClientBuilder, ChatMemory chatMemory) {
         this.chatClient = chatClientBuilder
                 .defaultSystem("""
                         You are Manoj AI, the official AI assistant for Manoj Mobiles.
@@ -39,13 +38,15 @@ public class AiChatService {
                         
                                             Never pretend to have information that you don't actually have.
                         """)
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
     }
 
-    public String chat(String message){
+    public String chat(String chatId, String message){
         //logic to call AI
         return chatClient.prompt()
                 .user(message)
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, chatId))
                 .call()
                 .content();
     }
