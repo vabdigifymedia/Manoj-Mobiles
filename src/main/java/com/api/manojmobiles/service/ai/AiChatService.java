@@ -1,7 +1,10 @@
 package com.api.manojmobiles.service.ai;
 
+import com.api.manojmobiles.exception.BadRequestException;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AiChatService {
@@ -40,7 +43,6 @@ public class AiChatService {
     }
 
     public String chat(String message){
-
         //logic to call AI
         return chatClient.prompt()
                 .user(message)
