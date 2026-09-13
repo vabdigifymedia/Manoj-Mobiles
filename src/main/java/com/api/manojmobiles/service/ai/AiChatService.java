@@ -1,5 +1,6 @@
 package com.api.manojmobiles.service.ai;
 
+import com.api.manojmobiles.service.ai.tools.ProductTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -10,7 +11,8 @@ public class AiChatService {
 
     private final ChatClient chatClient;
 
-    public AiChatService(ChatClient.Builder chatClientBuilder, ChatMemory chatMemory) {
+    public AiChatService(ChatClient.Builder chatClientBuilder, ChatMemory chatMemory, ProductTools productTools) {
+
         this.chatClient = chatClientBuilder
                 .defaultSystem("""
                         You are Manoj AI, the official AI assistant for Manoj Mobiles.
@@ -39,6 +41,7 @@ public class AiChatService {
                                             Never pretend to have information that you don't actually have.
                         """)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .defaultTools(productTools)
                 .build();
     }
 
