@@ -21,17 +21,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Central Redis configuration.
- *
- * Provides:
- * - RedisTemplate with JSON value serialization and String key serialization
- * - StringRedisTemplate for simple key-value operations (OTP, tokens, rate
- * limiting)
- * - RedisCacheManager with per-cache TTL support (product, category)
- * - Custom CacheErrorHandler that falls back gracefully when Redis is
- * unavailable
- */
 @Slf4j
 @Configuration
 @EnableCaching

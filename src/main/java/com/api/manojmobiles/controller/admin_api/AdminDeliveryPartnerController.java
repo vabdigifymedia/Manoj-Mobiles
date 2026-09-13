@@ -1,4 +1,4 @@
-package com.api.manojmobiles.controller;
+package com.api.manojmobiles.controller.admin_api;
 
 import com.api.manojmobiles.dto.ApiResponse;
 import com.api.manojmobiles.dto.deliverypartner.CreateDeliveryPartnerRequestDTO;
