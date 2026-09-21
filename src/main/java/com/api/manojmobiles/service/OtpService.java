@@ -2,6 +2,8 @@ package com.api.manojmobiles.service;
 
 import com.api.manojmobiles.config.RedisProperties;
 import com.api.manojmobiles.exception.BadRequestException;
+import com.api.manojmobiles.service.sms.SmsService;
+import com.api.manojmobiles.service.sms.SmsTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -35,6 +37,7 @@ public class OtpService {
 
     private final StringRedisTemplate stringRedisTemplate;
     private final RedisProperties redisProperties;
+    private final SmsService smsService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     /**
@@ -55,6 +58,10 @@ public class OtpService {
                     otp,
                     redisProperties.getOtpTtl());
             log.info("OTP generated for phone:{}. [DEV ONLY] OTP is: {}", maskPhone(phone), otp);
+            
+            // Send the OTP via SMS asynchronously
+            smsService.sendSms(phone, SmsTemplate.LOGIN, otp);
+            
         } catch (Exception e) {
             log.error("Failed to store OTP in Redis for phone:{}. Error: {}", maskPhone(phone), e.getMessage());
             throw new RuntimeException("OTP service is temporarily unavailable. Please try again later.");

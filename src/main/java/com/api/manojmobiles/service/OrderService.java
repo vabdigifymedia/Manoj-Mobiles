@@ -14,6 +14,8 @@ import com.api.manojmobiles.entity.enums.NotificationType;
 import com.api.manojmobiles.exception.BadRequestException;
 import com.api.manojmobiles.exception.ResourceNotFoundException;
 import com.api.manojmobiles.repository.*;
+import com.api.manojmobiles.service.sms.SmsService;
+import com.api.manojmobiles.service.sms.SmsTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -50,6 +52,7 @@ public class OrderService {
         private final CartService cartService;
         private final CouponService couponService;
         private final NotificationService notificationService;
+        private final SmsService smsService;
         private final PineLabsPaymentService pineLabsPaymentService;
         private final DeliveryPartnerRepository deliveryPartnerRepository;
         private final GoogleMapsService googleMapsService;
@@ -221,6 +224,11 @@ public class OrderService {
                                 "Your order " + order.getOrderNumber() + " has been placed successfully.",
                                 NotificationType.ORDER_UPDATE);
 
+                if (user.getPhone() != null) {
+                        smsService.sendSms(user.getPhone(), SmsTemplate.ORDER_PLACED_CONFIRMATION, 
+                                        order.getOrderNumber(), order.getTotalAmount().toString());
+                }
+
                 log.info("Order {} placed for user {}", order.getOrderNumber(), username);
 
                 // 11. Generate Pine Labs Payment Link for non-COD orders
@@ -267,6 +275,13 @@ public class OrderService {
                                 "Your order is out for delivery. Expected time: "
                                                 + eta.format(DateTimeFormatter.ofPattern("hh:mm a")),
                                 NotificationType.ORDER_UPDATE);
+
+                if (order.getUser().getPhone() != null) {
+                        smsService.sendSms(order.getUser().getPhone(), SmsTemplate.OUT_FOR_DELIVERY,
+                                        order.getOrderNumber(), partner.getName(), 
+                                        eta.format(DateTimeFormatter.ofPattern("hh:mm a")), 
+                                        "manojmobiles.com");
+                }
 
                 return mapToDTO(order, order.getOrderItems(),
                                 paymentRepository.findByOrderId(order.getId()).orElse(null));
@@ -345,6 +360,13 @@ public class OrderService {
                                 "Your order " + order.getOrderNumber() + " has been cancelled.",
                                 NotificationType.ORDER_UPDATE);
 
+                if (user.getPhone() != null) {
+                        String refundAmount = (payment != null && payment.getMethod() != PaymentMethod.COD) ? 
+                                              order.getTotalAmount().toString() : "0";
+                        smsService.sendSms(user.getPhone(), SmsTemplate.ORDER_CANCELLED, 
+                                        order.getOrderNumber(), refundAmount);
+                }
+
                 return mapToDTO(order, order.getOrderItems(), payment);
         }
 
@@ -388,6 +410,11 @@ public class OrderService {
                                 "Payment for order " + order.getOrderNumber()
                                                 + " was successful. Your order is confirmed.",
                                 NotificationType.ORDER_UPDATE);
+
+                if (order.getUser().getPhone() != null) {
+                        smsService.sendSms(order.getUser().getPhone(), SmsTemplate.ORDER_CONFIRMED, 
+                                        payment.getAmount().toString(), order.getOrderNumber());
+                }
 
                 return mapToDTO(order, order.getOrderItems(), payment);
         }
@@ -461,6 +488,11 @@ public class OrderService {
                                 "Order Status Updated",
                                 "Your order " + order.getOrderNumber() + " is now " + newStatus.name() + ".",
                                 NotificationType.ORDER_UPDATE);
+
+                if (order.getUser().getPhone() != null) {
+                        smsService.sendSms(order.getUser().getPhone(), SmsTemplate.ORDER_STATUS_UPDATE, 
+                                        order.getOrderNumber(), newStatus.name(), "manojmobiles.com", "+919876543210");
+                }
 
                 return mapToDTO(order, order.getOrderItems(),
                                 paymentRepository.findByOrderId(order.getId()).orElse(null));
