@@ -4,6 +4,8 @@ import com.api.manojmobiles.dto.auth.AuthResponseDTO;
 import com.api.manojmobiles.dto.auth.CreateStaffRequestDTO;
 import com.api.manojmobiles.dto.auth.CustomerLoginRequestDTO;
 import com.api.manojmobiles.dto.auth.CustomerSignUpDTO;
+import com.api.manojmobiles.dto.auth.CustomerEmailLoginDTO;
+import com.api.manojmobiles.dto.auth.CustomerEmailSignUpDTO;
 import com.api.manojmobiles.dto.auth.StaffLoginRequestDTO;
 import com.api.manojmobiles.dto.auth.ChangePasswordRequestDTO;
 import com.api.manojmobiles.entity.User;
@@ -35,6 +37,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtTokenProvider tokenProvider;
     private final OtpService otpService;
+    private final EmailOtpService emailOtpService;
     private final RefreshTokenService refreshTokenService;
     private final PasswordResetService passwordResetService;
     private final PasswordEncoder passwordEncoder;
@@ -100,6 +103,87 @@ public class AuthService {
         User result = userRepository.save(user);
 
         String jwt = tokenProvider.generateToken(result.getPhone());
+        String refreshToken = refreshTokenService.createRefreshToken(result.getId());
+
+        return AuthResponseDTO.builder()
+                .token(jwt)
+                .refreshToken(refreshToken)
+                .userId(result.getId())
+                .name(result.getName())
+                .role(result.getRole())
+                .build();
+    }
+
+    // =========================================================================
+    // [TEMPORARY - PINE LABS APPROVAL]
+    // Reason: TD Digital SMS credits exhausted; added for PG review team.
+    // Removal: Delete the methods below once SMS is restored.
+    // =========================================================================
+
+    /**
+     * Send OTP to an email address.
+     * [TEMPORARY - PINE LABS APPROVAL]
+     */
+    public String sendEmailOtp(String email) {
+        return emailOtpService.generateAndSendOtp(email);
+    }
+
+    /**
+     * Authenticate customer using Email + OTP.
+     * [TEMPORARY - PINE LABS APPROVAL]
+     */
+    public AuthResponseDTO authenticateCustomerWithEmailOtp(CustomerEmailLoginDTO loginRequest) {
+        emailOtpService.verifyOtp(loginRequest.getEmail(), loginRequest.getOtp());
+
+        User user = userRepository.findByEmail(loginRequest.getEmail().trim().toLowerCase())
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with email: " + loginRequest.getEmail() + ". Please sign up first."));
+
+        String identifier = user.getEmail() != null && !user.getEmail().trim().isEmpty()
+                ? user.getEmail()
+                : user.getPhone();
+
+        String jwt = tokenProvider.generateToken(identifier);
+        String refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+        return AuthResponseDTO.builder()
+                .token(jwt)
+                .refreshToken(refreshToken)
+                .userId(user.getId())
+                .name(user.getName())
+                .role(user.getRole())
+                .build();
+    }
+
+    /**
+     * Register new customer using Name, Email, Phone, and verified Email OTP.
+     * [TEMPORARY - PINE LABS APPROVAL]
+     */
+    public AuthResponseDTO registerCustomerWithEmailOtp(CustomerEmailSignUpDTO signUpRequest) {
+        emailOtpService.verifyOtp(signUpRequest.getEmail(), signUpRequest.getOtp());
+
+        String email = signUpRequest.getEmail().trim().toLowerCase();
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new BadRequestException("Email is already registered. Please login instead.");
+        }
+
+        if (userRepository.findByPhone(signUpRequest.getPhone()).isPresent()) {
+            throw new BadRequestException("Phone Number is already registered.");
+        }
+
+        User user = User.builder()
+                .name(signUpRequest.getName())
+                .email(email)
+                .phone(signUpRequest.getPhone())
+                .role(Role.CUSTOMER)
+                .status(UserStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        User result = userRepository.save(user);
+
+        String jwt = tokenProvider.generateToken(result.getEmail());
         String refreshToken = refreshTokenService.createRefreshToken(result.getId());
 
         return AuthResponseDTO.builder()

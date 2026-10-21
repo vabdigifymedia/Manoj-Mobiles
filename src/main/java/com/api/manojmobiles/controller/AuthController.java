@@ -5,6 +5,9 @@ import com.api.manojmobiles.dto.ApiResponse;
 import com.api.manojmobiles.dto.auth.AuthResponseDTO;
 import com.api.manojmobiles.dto.auth.CustomerLoginRequestDTO;
 import com.api.manojmobiles.dto.auth.CustomerSignUpDTO;
+import com.api.manojmobiles.dto.auth.SendEmailOtpRequestDTO;
+import com.api.manojmobiles.dto.auth.CustomerEmailLoginDTO;
+import com.api.manojmobiles.dto.auth.CustomerEmailSignUpDTO;
 import com.api.manojmobiles.dto.auth.ForgetPasswordRequestDTO;
 import com.api.manojmobiles.dto.auth.LogoutRequestDTO;
 import com.api.manojmobiles.dto.auth.RefreshTokenRequestDTO;
@@ -106,6 +109,52 @@ public class AuthController {
 
         String otp = authService.sendOtp(requestBody.getPhone());
         return ResponseEntity.ok(ApiResponse.success("OTP sent successfully", otp));
+    }
+
+    // =========================================================================
+    // [TEMPORARY - PINE LABS APPROVAL]
+    // Reason: TD Digital SMS credits exhausted; added for PG review team.
+    // Removal: Delete the 3 endpoints below once SMS is restored.
+    // =========================================================================
+
+    @Operation(summary = "Send OTP to Email", description = "Sends an OTP to customer's email address [TEMPORARY - PINE LABS APPROVAL]")
+    @PostMapping("/send-email-otp")
+    public ResponseEntity<ApiResponse<String>> sendEmailOtp(
+            @Valid @RequestBody SendEmailOtpRequestDTO requestBody,
+            HttpServletRequest request) {
+
+        String ip = getClientIp(request);
+        rateLimiterService.checkRateLimit(
+                "rate:email-otp:" + ip,
+                redisProperties.getRate().getOtpLimit(),
+                redisProperties.getRate().getOtpWindow());
+
+        String otp = authService.sendEmailOtp(requestBody.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("OTP sent to email successfully", otp));
+    }
+
+    @Operation(summary = "Customer Login with Email OTP", description = "Authenticates a customer using email and OTP [TEMPORARY - PINE LABS APPROVAL]")
+    @PostMapping("/login-email-otp")
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> authenticateUserWithEmailOtp(
+            @Valid @RequestBody CustomerEmailLoginDTO loginRequest,
+            HttpServletRequest request) {
+
+        String ip = getClientIp(request);
+        rateLimiterService.checkRateLimit(
+                "rate:login:" + ip,
+                redisProperties.getRate().getLoginLimit(),
+                redisProperties.getRate().getLoginWindow());
+
+        AuthResponseDTO response = authService.authenticateCustomerWithEmailOtp(loginRequest);
+        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
+    }
+
+    @Operation(summary = "Customer Registration with Email OTP", description = "Registers a new customer account using Email OTP [TEMPORARY - PINE LABS APPROVAL]")
+    @PostMapping("/register-email-otp")
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> registerUserWithEmailOtp(
+            @Valid @RequestBody CustomerEmailSignUpDTO signUpRequest) {
+        AuthResponseDTO response = authService.registerCustomerWithEmailOtp(signUpRequest);
+        return new ResponseEntity<>(ApiResponse.success("User registered successfully", response), HttpStatus.CREATED);
     }
 
 
