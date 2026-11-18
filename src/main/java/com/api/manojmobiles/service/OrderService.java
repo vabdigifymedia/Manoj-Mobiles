@@ -257,7 +257,7 @@ public class OrderService {
                                 "Your order " + order.getOrderNumber() + " has been placed successfully.",
                                 NotificationType.ORDER_UPDATE);
 
-                if (user.getPhone() != null) {
+                if (smsService != null && user.getPhone() != null) {
                         smsService.sendSms(user.getPhone(), SmsTemplate.ORDER_PLACED_CONFIRMATION, 
                                         order.getOrderNumber(), order.getTotalAmount().toString());
                 }

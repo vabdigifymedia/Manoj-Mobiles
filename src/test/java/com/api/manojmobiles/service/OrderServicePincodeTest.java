@@ -42,6 +42,7 @@ public class OrderServicePincodeTest {
     @Mock private CartService cartService;
     @Mock private CouponService couponService;
     @Mock private NotificationService notificationService;
+    @Mock private com.api.manojmobiles.service.sms.SmsService smsService;
     @Mock private PineLabsPaymentService pineLabsPaymentService;
     @Mock private DeliveryPartnerRepository deliveryPartnerRepository;
     @Mock private GoogleMapsService googleMapsService;
