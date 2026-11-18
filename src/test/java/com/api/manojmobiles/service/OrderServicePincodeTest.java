@@ -45,6 +45,12 @@ public class OrderServicePincodeTest {
     @Mock private PineLabsPaymentService pineLabsPaymentService;
     @Mock private DeliveryPartnerRepository deliveryPartnerRepository;
     @Mock private GoogleMapsService googleMapsService;
+    @Mock private DeliveryService deliveryService;
+    @Mock private StoreSettingService storeSettingService;
+    @Mock private DeliveryPartnerService deliveryPartnerService;
+    @Mock private DeliveryAgentRepository deliveryAgentRepository;
+    @Mock private ShipmentRepository shipmentRepository;
+    @Mock private LiveLocationService liveLocationService;
     @InjectMocks
     private OrderService orderService;
 

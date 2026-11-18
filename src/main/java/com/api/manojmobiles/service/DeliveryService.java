@@ -43,7 +43,7 @@ public class DeliveryService {
     private static final int DEFAULT_HYPERLOCAL_MINS = 45;
     private static final double DEFAULT_HYPERLOCAL_RADIUS_KM = 15.0;
     private static final BigDecimal DEFAULT_STANDARD_CHARGE = BigDecimal.ZERO;
-    private static final int DEFAULT_STANDARD_DAYS = 4;
+    private static final int DEFAULT_STANDARD_DAYS = 5;
 
     private final DeliveryAgentRepository deliveryAgentRepository;
     private final ShipmentRepository shipmentRepository;
@@ -59,6 +59,7 @@ public class DeliveryService {
     private final GoogleMapsService googleMapsService;
     private final NotificationService notificationService;
     private final StoreSettingService storeSettingService;
+    private final DeliveryPartnerRepository deliveryPartnerRepository;
 
     @Transactional
     public DeliveryAgentResponseDTO createDeliveryAgent(DeliveryAgentRequestDTO request) {
@@ -86,6 +87,18 @@ public class DeliveryService {
                 .isAvailable(true)
                 .build();
         agent = deliveryAgentRepository.save(agent);
+
+        // Auto-create/sync DeliveryPartner so admin panel "Delivery Partners" menu also lists this agent
+        DeliveryPartner partner = deliveryPartnerRepository.findByPhone(request.getPhone())
+                .orElseGet(() -> DeliveryPartner.builder().build());
+        partner.setName(request.getName());
+        partner.setPhone(request.getPhone());
+        partner.setEmail(request.getEmail());
+        partner.setVehicleNo(request.getVehicleNo());
+        partner.setIsActive(true);
+        partner.setUser(user);
+        partner.setAgent(agent);
+        deliveryPartnerRepository.save(partner);
 
         return mapToAgentDTO(agent);
     }
@@ -117,6 +130,8 @@ public class DeliveryService {
         DeliveryAgent agent = deliveryAgentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Delivery agent not found with id: " + id));
         deliveryAgentRepository.delete(agent);
+        deliveryPartnerRepository.findByAgentId(agent.getId())
+                .ifPresent(deliveryPartnerRepository::delete);
         userRepository.delete(agent.getUser());
     }
 
@@ -269,6 +284,12 @@ public class DeliveryService {
         order.setOrderStatus(OrderStatus.SHIPPED);
         order.setExpectedDeliveryDate(route.getEta());
         order.setUpdatedAt(now);
+
+        // Auto-link DeliveryPartner to order if exists
+        deliveryPartnerRepository.findByAgentId(agent.getId())
+                .or(() -> deliveryPartnerRepository.findByUserId(agent.getUser().getId()))
+                .ifPresent(order::setDeliveryPartner);
+
         orderRepository.save(order);
 
         recordStatusHistory(order, OrderStatus.SHIPPED,

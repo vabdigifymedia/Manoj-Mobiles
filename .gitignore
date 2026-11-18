@@ -32,7 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 .env
-test_phase7.py
+*.log
+*.sh
+test*.py
 test_results.txt
-test_phase8.py
+CLAUDE.md
 docs/HYPERLOCAL_TRACKING_FRONTEND_CONTRACT.md

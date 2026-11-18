@@ -58,6 +58,10 @@ public class OrderService {
         private final GoogleMapsService googleMapsService;
         private final DeliveryService deliveryService;
         private final StoreSettingService storeSettingService;
+        private final DeliveryPartnerService deliveryPartnerService;
+        private final DeliveryAgentRepository deliveryAgentRepository;
+        private final ShipmentRepository shipmentRepository;
+        private final LiveLocationService liveLocationService;
 
         @Transactional
         public OrderResponseDTO placeOrder(String username, PlaceOrderRequestDTO request) {
@@ -114,11 +118,14 @@ public class OrderService {
                                         address.getLat(),
                                         address.getLng());
                 } else {
+                        int defaultDays = (deliveryService != null && deliveryService.resolveStandardEstimatedDays(storeSettings) > 0)
+                                        ? deliveryService.resolveStandardEstimatedDays(storeSettings)
+                                        : 5;
                         int standardDays = localPincode.isPresent()
                                         && localPincode.get().getEstimatedDeliveryDays() != null
-                                        && localPincode.get().getEstimatedDeliveryDays() > 1
+                                        && localPincode.get().getEstimatedDeliveryDays() > 0
                                                         ? localPincode.get().getEstimatedDeliveryDays()
-                                                        : deliveryService.resolveStandardEstimatedDays(storeSettings);
+                                                        : defaultDays;
                         expectedDelivery = LocalDateTime.now().plusDays(standardDays);
                 }
 
@@ -211,9 +218,10 @@ public class OrderService {
                 }
 
                 BigDecimal deliveryCharge = deliveryService.computeDeliveryCharge(deliveryType, subTotal);
-                order.setDeliveryCharge(deliveryCharge);
+                BigDecimal effectiveDeliveryCharge = deliveryCharge != null ? deliveryCharge : BigDecimal.ZERO;
+                order.setDeliveryCharge(effectiveDeliveryCharge);
                 order.setDiscountAmount(discountAmount);
-                order.setTotalAmount(subTotal.subtract(discountAmount).max(BigDecimal.ZERO).add(deliveryCharge));
+                order.setTotalAmount(subTotal.subtract(discountAmount).max(BigDecimal.ZERO).add(effectiveDeliveryCharge));
                 order.setGstAmount(gstTotal);
                 orderRepository.save(order);
 
@@ -289,11 +297,42 @@ public class OrderService {
                 com.api.manojmobiles.dto.delivery.RouteInfoDTO route = googleMapsService.getRoute(
                                 storeLat, storeLng, order.getShippingLat(), order.getShippingLng());
                 LocalDateTime eta = route.getEta();
+                LocalDateTime now = LocalDateTime.now();
                 order.setExpectedDeliveryDate(eta);
                 order.setOrderStatus(OrderStatus.OUT_FOR_DELIVERY);
-                order.setUpdatedAt(LocalDateTime.now());
+                order.setUpdatedAt(now);
 
                 order = orderRepository.save(order);
+                final Order currentOrder = order;
+
+                // Auto-sync underlying DeliveryAgent and Shipment so real-time GPS tracking works
+                DeliveryAgent agent = deliveryPartnerService.getOrCreateAgentForPartner(partner);
+                Shipment shipment = shipmentRepository.findByOrderId(currentOrder.getId())
+                                .orElseGet(() -> Shipment.builder().order(currentOrder).build());
+                shipment.setAgent(agent);
+                shipment.setAssignedAt(now);
+                shipment.setPickedAt(now);
+                shipment.setCurrentStatus(OrderStatus.OUT_FOR_DELIVERY);
+                shipment.setRoutePolyline(route.getEncodedPolyline());
+                shipment.setRouteDistanceMetres(route.getDistanceMetres());
+                shipment.setRouteDurationSeconds(route.getDurationSeconds());
+                shipment.setStoreLat(storeLat);
+                shipment.setStoreLng(storeLng);
+                shipment.setProgress(0.0);
+                shipment.setRemainingMetres(route.getDistanceMetres());
+                shipment.setRemainingSeconds(route.getDurationSeconds());
+                shipment.setEta(eta);
+                shipment.setLastLat(storeLat);
+                shipment.setLastLng(storeLng);
+                shipment.setLastLocationAt(now);
+                shipmentRepository.save(shipment);
+
+                liveLocationService.updateLiveLocation(order.getId(), storeLat, storeLng);
+
+                if (agent != null) {
+                        agent.setIsAvailable(false);
+                        deliveryAgentRepository.save(agent);
+                }
 
                 deliveryService.broadcastTrackingEvent(order,
                                 com.api.manojmobiles.dto.delivery.TrackingEventDTO.builder()

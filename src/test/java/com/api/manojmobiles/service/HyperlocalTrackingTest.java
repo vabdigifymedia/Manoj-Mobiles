@@ -43,6 +43,7 @@ class HyperlocalTrackingTest {
     @Mock private LiveLocationService liveLocationService;
     @Mock private NotificationService notificationService;
     @Mock private StoreSettingService storeSettingService;
+    @Mock private DeliveryPartnerRepository deliveryPartnerRepository;
 
     private GoogleMapsService googleMapsService;
     private DeliveryService deliveryService;
@@ -79,7 +80,8 @@ class HyperlocalTrackingTest {
                 liveLocationService,
                 googleMapsService,
                 notificationService,
-                storeSettingService
+                storeSettingService,
+                deliveryPartnerRepository
         );
     }
 

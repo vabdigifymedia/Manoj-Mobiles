@@ -62,7 +62,7 @@ public class StoreSetting {
     @Builder.Default
     private BigDecimal standardDeliveryCharge = BigDecimal.ZERO;
     @Builder.Default
-    private Integer standardEstimatedDays = 4;
+    private Integer standardEstimatedDays = 5;
 
     private Double storeLat;
     private Double storeLng;

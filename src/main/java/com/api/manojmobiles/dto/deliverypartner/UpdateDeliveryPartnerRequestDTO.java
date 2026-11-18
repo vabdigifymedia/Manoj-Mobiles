@@ -12,5 +12,8 @@ import lombok.NoArgsConstructor;
 public class UpdateDeliveryPartnerRequestDTO {
     private String name;
     private String phone;
+    private String email;
     private String vehicleNo;
+    private String password;
+    private Boolean isActive;
 }

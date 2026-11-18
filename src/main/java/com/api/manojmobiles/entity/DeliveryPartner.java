@@ -28,6 +28,16 @@ public class DeliveryPartner {
     @NotBlank
     private String vehicleNo;
 
+    private String email;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agent_id")
+    private DeliveryAgent agent;
+
     @Builder.Default
     private Boolean isActive = true;
 

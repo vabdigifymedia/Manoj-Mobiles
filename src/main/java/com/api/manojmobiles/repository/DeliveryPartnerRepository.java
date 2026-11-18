@@ -13,4 +13,8 @@ import java.util.UUID;
 public interface DeliveryPartnerRepository extends JpaRepository<DeliveryPartner, UUID> {
     Page<DeliveryPartner> findByNameContainingIgnoreCaseOrPhoneContainingIgnoreCase(String name, String phone, Pageable pageable);
     List<DeliveryPartner> findByIsActiveTrue();
+    java.util.Optional<DeliveryPartner> findByPhone(String phone);
+    java.util.Optional<DeliveryPartner> findByEmail(String email);
+    java.util.Optional<DeliveryPartner> findByUserId(UUID userId);
+    java.util.Optional<DeliveryPartner> findByAgentId(UUID agentId);
 }

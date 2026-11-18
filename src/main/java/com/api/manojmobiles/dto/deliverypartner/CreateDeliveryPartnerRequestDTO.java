@@ -21,6 +21,10 @@ public class CreateDeliveryPartnerRequestDTO {
     @NotBlank(message = "Vehicle number is required")
     private String vehicleNo;
 
+    private String email;
+
+    private String password;
+
     @Builder.Default
     private Boolean isActive = true;
 }
