@@ -117,6 +117,14 @@ public class AuthController {
     // Removal: Delete the 3 endpoints below once SMS is restored.
     // =========================================================================
 
+    @Operation(summary = "Check Email Existence", description = "Checks whether an account exists for the given email [TEMPORARY - PINE LABS APPROVAL]")
+    @PostMapping("/check-email")
+    public ResponseEntity<ApiResponse<Boolean>> checkEmail(
+            @Valid @RequestBody SendEmailOtpRequestDTO requestBody) {
+        boolean exists = authService.checkEmailExists(requestBody.getEmail());
+        return ResponseEntity.ok(ApiResponse.success(exists ? "Account exists" : "No account found", exists));
+    }
+
     @Operation(summary = "Send OTP to Email", description = "Sends an OTP to customer's email address [TEMPORARY - PINE LABS APPROVAL]")
     @PostMapping("/send-email-otp")
     public ResponseEntity<ApiResponse<String>> sendEmailOtp(

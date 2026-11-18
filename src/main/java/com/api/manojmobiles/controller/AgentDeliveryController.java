@@ -1,10 +1,12 @@
 package com.api.manojmobiles.controller;
 
 import com.api.manojmobiles.dto.ApiResponse;
+import com.api.manojmobiles.dto.delivery.AgentHeartbeatRequestDTO;
 import com.api.manojmobiles.dto.delivery.AvailabilityRequestDTO;
 import com.api.manojmobiles.dto.delivery.DeliveryAgentResponseDTO;
 import com.api.manojmobiles.dto.delivery.LocationUpdateRequestDTO;
 import com.api.manojmobiles.dto.delivery.ShipmentResponseDTO;
+import com.api.manojmobiles.dto.delivery.TrackingEventDTO;
 import com.api.manojmobiles.entity.enums.OrderStatus;
 import com.api.manojmobiles.service.DeliveryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -68,13 +70,25 @@ public class AgentDeliveryController {
 
     @PostMapping("/location")
     @PreAuthorize("hasRole('DELIVERY_AGENT')")
-    public ResponseEntity<ApiResponse<Void>> pushLocation(
+    public ResponseEntity<ApiResponse<TrackingEventDTO>> pushLocation(
             @Valid @RequestBody LocationUpdateRequestDTO request,
             @AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
         }
-        deliveryService.updateLocation(userDetails.getUsername(), request);
-        return ResponseEntity.ok(ApiResponse.success("Location updated successfully", null));
+        TrackingEventDTO event = deliveryService.updateLocation(userDetails.getUsername(), request);
+        return ResponseEntity.ok(ApiResponse.success("Location updated successfully", event));
+    }
+
+    @PostMapping("/heartbeat")
+    @PreAuthorize("hasRole('DELIVERY_AGENT')")
+    public ResponseEntity<ApiResponse<DeliveryAgentResponseDTO>> heartbeat(
+            @Valid @RequestBody AgentHeartbeatRequestDTO request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
+        }
+        DeliveryAgentResponseDTO agent = deliveryService.recordAgentHeartbeat(userDetails.getUsername(), request);
+        return ResponseEntity.ok(ApiResponse.success("Agent heartbeat recorded", agent));
     }
 }

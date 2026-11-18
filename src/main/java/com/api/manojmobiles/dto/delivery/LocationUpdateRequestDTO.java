@@ -13,4 +13,6 @@ public class LocationUpdateRequestDTO {
     private Double lat;
     @NotNull
     private Double lng;
+    private Double heading;
+    private Double speedKmh;
 }

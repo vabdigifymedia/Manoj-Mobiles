@@ -36,5 +36,8 @@ public class AgentLocationTracking {
     @NotNull
     private Double lng;
 
+    private Double heading;
+    private Double speedKmh;
+
     private LocalDateTime recordedAt;
 }

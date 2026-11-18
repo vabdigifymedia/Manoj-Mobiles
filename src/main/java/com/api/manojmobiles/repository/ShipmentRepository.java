@@ -11,6 +11,8 @@ import java.util.UUID;
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
     Optional<Shipment> findByOrderId(UUID orderId);
+    boolean existsByOrderId(UUID orderId);
     List<Shipment> findByAgentId(UUID agentId);
+    long countByAgentIdAndCurrentStatusIn(UUID agentId, List<com.api.manojmobiles.entity.enums.OrderStatus> statuses);
     org.springframework.data.domain.Page<Shipment> findByAgentIdAndCurrentStatusIn(UUID agentId, List<com.api.manojmobiles.entity.enums.OrderStatus> statuses, org.springframework.data.domain.Pageable pageable);
 }

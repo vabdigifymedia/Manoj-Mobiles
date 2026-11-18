@@ -67,4 +67,11 @@ public class AdminDeliveryController {
         ShipmentResponseDTO shipment = deliveryService.assignShipment(orderId, request);
         return ResponseEntity.ok(ApiResponse.success("Order assigned to agent successfully", shipment));
     }
+
+    @PostMapping("/orders/{orderId}/auto-dispatch")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ShipmentResponseDTO>> autoDispatchOrder(@PathVariable UUID orderId) {
+        ShipmentResponseDTO shipment = deliveryService.autoAssignNearestAgent(orderId);
+        return ResponseEntity.ok(ApiResponse.success("Nearest available agent dispatched successfully", shipment));
+    }
 }

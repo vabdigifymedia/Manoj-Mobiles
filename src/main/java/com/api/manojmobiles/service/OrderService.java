@@ -56,6 +56,8 @@ public class OrderService {
         private final PineLabsPaymentService pineLabsPaymentService;
         private final DeliveryPartnerRepository deliveryPartnerRepository;
         private final GoogleMapsService googleMapsService;
+        private final DeliveryService deliveryService;
+        private final com.api.manojmobiles.config.StoreDeliveryProperties storeProps;
 
         @Transactional
         public OrderResponseDTO placeOrder(String username, PlaceOrderRequestDTO request) {
@@ -83,21 +85,41 @@ public class OrderService {
                         throw new BadRequestException("Address does not belong to user");
                 }
 
-                // 3. Expected Delivery Calculation & Delivery Type
+                // 3. Expected Delivery Calculation & Delivery Type (honors explicit customer choice)
                 Optional<ServiceablePincode> localPincode = pincodeRepository.findByPincode(address.getPincode());
-                boolean isLocal = localPincode.isPresent() && Boolean.TRUE.equals(localPincode.get().getIsActive());
+                boolean hyperlocalEligible = deliveryService.isHyperlocalEligible(
+                                address.getPincode(), address.getLat(), address.getLng());
 
-                int deliveryDays = isLocal
-                                ? (localPincode.get().getEstimatedDeliveryDays() != null
-                                                && localPincode.get().getEstimatedDeliveryDays() > 0
-                                                                ? localPincode.get().getEstimatedDeliveryDays()
-                                                                : 1)
-                                : 5;
-                LocalDateTime expectedDelivery = LocalDateTime.now().plusDays(deliveryDays);
+                com.api.manojmobiles.entity.enums.DeliveryType deliveryType;
+                if (request.getDeliveryType() == com.api.manojmobiles.entity.enums.DeliveryType.HYPERLOCAL) {
+                        if (!hyperlocalEligible) {
+                                throw new BadRequestException(
+                                                "Hyperlocal express delivery is not available for this address");
+                        }
+                        deliveryType = com.api.manojmobiles.entity.enums.DeliveryType.HYPERLOCAL;
+                } else if (request.getDeliveryType() == com.api.manojmobiles.entity.enums.DeliveryType.STANDARD) {
+                        deliveryType = com.api.manojmobiles.entity.enums.DeliveryType.STANDARD;
+                } else {
+                        deliveryType = hyperlocalEligible
+                                        ? com.api.manojmobiles.entity.enums.DeliveryType.HYPERLOCAL
+                                        : com.api.manojmobiles.entity.enums.DeliveryType.STANDARD;
+                }
 
-                com.api.manojmobiles.entity.enums.DeliveryType deliveryType = isLocal
-                                ? com.api.manojmobiles.entity.enums.DeliveryType.HYPERLOCAL
-                                : com.api.manojmobiles.entity.enums.DeliveryType.STANDARD;
+                LocalDateTime expectedDelivery;
+                if (deliveryType == com.api.manojmobiles.entity.enums.DeliveryType.HYPERLOCAL) {
+                        expectedDelivery = googleMapsService.calculateETA(
+                                        storeProps.getStore().getLat(),
+                                        storeProps.getStore().getLng(),
+                                        address.getLat(),
+                                        address.getLng());
+                } else {
+                        int standardDays = localPincode.isPresent()
+                                        && localPincode.get().getEstimatedDeliveryDays() != null
+                                        && localPincode.get().getEstimatedDeliveryDays() > 1
+                                                        ? localPincode.get().getEstimatedDeliveryDays()
+                                                        : storeProps.getDelivery().getStandard().getEstimatedDays();
+                        expectedDelivery = LocalDateTime.now().plusDays(standardDays);
+                }
 
                 // 4. Create Order Object
                 Order order = Order.builder()
@@ -187,8 +209,10 @@ public class OrderService {
                         discountAmount = couponService.validateAndCalculateDiscount(appliedCoupon, subTotal, user);
                 }
 
+                BigDecimal deliveryCharge = deliveryService.computeDeliveryCharge(deliveryType, subTotal);
+                order.setDeliveryCharge(deliveryCharge);
                 order.setDiscountAmount(discountAmount);
-                order.setTotalAmount(subTotal.subtract(discountAmount).max(BigDecimal.ZERO));
+                order.setTotalAmount(subTotal.subtract(discountAmount).max(BigDecimal.ZERO).add(deliveryCharge));
                 order.setGstAmount(gstTotal);
                 orderRepository.save(order);
 
@@ -257,16 +281,43 @@ public class OrderService {
 
                 order.setDeliveryPartner(partner);
 
-                // Calculate ETA
-                Double storeLat = 28.5355; // Manoj Mobiles Store Lat (Noida)
-                Double storeLng = 77.3910; // Manoj Mobiles Store Lng (Noida)
-                LocalDateTime eta = googleMapsService.calculateETA(storeLat, storeLng, order.getShippingLat(),
-                                order.getShippingLng());
+                // Calculate ETA & Route
+                Double storeLat = storeProps.getStore().getLat();
+                Double storeLng = storeProps.getStore().getLng();
+                com.api.manojmobiles.dto.delivery.RouteInfoDTO route = googleMapsService.getRoute(
+                                storeLat, storeLng, order.getShippingLat(), order.getShippingLng());
+                LocalDateTime eta = route.getEta();
                 order.setExpectedDeliveryDate(eta);
                 order.setOrderStatus(OrderStatus.OUT_FOR_DELIVERY);
                 order.setUpdatedAt(LocalDateTime.now());
 
                 order = orderRepository.save(order);
+
+                deliveryService.broadcastTrackingEvent(order,
+                                com.api.manojmobiles.dto.delivery.TrackingEventDTO.builder()
+                                                .eventType(com.api.manojmobiles.dto.delivery.TrackingEventType.AGENT_ASSIGNED)
+                                                .orderId(order.getId())
+                                                .orderNumber(order.getOrderNumber())
+                                                .status(OrderStatus.OUT_FOR_DELIVERY)
+                                                .lat(storeLat)
+                                                .lng(storeLng)
+                                                .progress(0.0)
+                                                .remainingMetres(route.getDistanceMetres())
+                                                .remainingSeconds(route.getDurationSeconds())
+                                                .eta(eta)
+                                                .routePolyline(route.getEncodedPolyline())
+                                                .routeDistanceMetres(route.getDistanceMetres())
+                                                .routeDurationSeconds(route.getDurationSeconds())
+                                                .agent(com.api.manojmobiles.dto.delivery.DeliveryAgentResponseDTO.builder()
+                                                                .id(partner.getId())
+                                                                .name(partner.getName())
+                                                                .phone(partner.getPhone())
+                                                                .vehicleNo(partner.getVehicleNo())
+                                                                .isAvailable(partner.getIsActive())
+                                                                .build())
+                                                .message(partner.getName() + " is out for delivery with your order")
+                                                .timestamp(LocalDateTime.now())
+                                                .build());
 
                 // Send Notification
                 notificationService.createNotification(
@@ -403,6 +454,17 @@ public class OrderService {
                                 .build();
                 statusHistoryRepository.save(history);
 
+                deliveryService.broadcastTrackingEvent(order,
+                                com.api.manojmobiles.dto.delivery.TrackingEventDTO.builder()
+                                                .eventType(com.api.manojmobiles.dto.delivery.TrackingEventType.STATUS_CHANGE)
+                                                .orderId(order.getId())
+                                                .orderNumber(order.getOrderNumber())
+                                                .status(OrderStatus.CONFIRMED)
+                                                .eta(order.getExpectedDeliveryDate())
+                                                .message("Payment confirmed! Preparing your order.")
+                                                .timestamp(LocalDateTime.now())
+                                                .build());
+
                 // Send Notification
                 notificationService.createNotification(
                                 order.getUser(),
@@ -481,6 +543,19 @@ public class OrderService {
                                 .updatedBy(updatedBy)
                                 .build();
                 statusHistoryRepository.save(history);
+
+                deliveryService.broadcastTrackingEvent(order,
+                                com.api.manojmobiles.dto.delivery.TrackingEventDTO.builder()
+                                                .eventType(com.api.manojmobiles.dto.delivery.TrackingEventType.STATUS_CHANGE)
+                                                .orderId(order.getId())
+                                                .orderNumber(order.getOrderNumber())
+                                                .status(newStatus)
+                                                .eta(order.getExpectedDeliveryDate())
+                                                .message(note != null && !note.isBlank()
+                                                                ? note
+                                                                : "Order status updated to " + newStatus.name())
+                                                .timestamp(LocalDateTime.now())
+                                                .build());
 
                 // Send Notification
                 notificationService.createNotification(

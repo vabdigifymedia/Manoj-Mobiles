@@ -36,4 +36,23 @@ public class Shipment {
 
     @NotNull
     @Enumerated(EnumType.STRING) private OrderStatus currentStatus;
+
+    @Column(columnDefinition = "TEXT")
+    private String routePolyline;
+
+    private Integer routeDistanceMetres;
+    private Integer routeDurationSeconds;
+
+    private Double storeLat;
+    private Double storeLng;
+
+    private Double progress;
+    private Integer remainingMetres;
+    private Integer remainingSeconds;
+    private LocalDateTime eta;
+
+    private Double lastLat;
+    private Double lastLng;
+    private Double lastHeading;
+    private LocalDateTime lastLocationAt;
 }

@@ -10,4 +10,7 @@ public class UpdateLiveLocationRequestDTO {
 
     @NotNull(message = "Longitude is required")
     private Double lng;
+
+    private Double heading;
+    private Double speedKmh;
 }

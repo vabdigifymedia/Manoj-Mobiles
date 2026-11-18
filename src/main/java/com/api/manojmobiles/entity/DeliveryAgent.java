@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -28,4 +29,9 @@ public class DeliveryAgent {
     private String vehicleNo;
 
     private Boolean isAvailable;
+
+    private Double currentLat;
+    private Double currentLng;
+    private Double heading;
+    private LocalDateTime lastLocationAt;
 }

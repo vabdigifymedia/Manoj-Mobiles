@@ -97,3 +97,23 @@ app:
       auth-key: ${SMS_TD_AUTH_KEY}
       sender-id: ${SMS_TD_SENDER_ID}
       domestic-route: "2"
+
+  store:
+    name: ${STORE_NAME:Manoj Mobiles}
+    address: ${STORE_ADDRESS:Sector 18, Noida, Uttar Pradesh}
+    lat: ${STORE_LAT:28.5355}
+    lng: ${STORE_LNG:77.3910}
+
+  delivery:
+    hyperlocal:
+      charge: ${HYPERLOCAL_DELIVERY_CHARGE:49}
+      free-above: ${HYPERLOCAL_FREE_ABOVE:999}
+      estimated-mins: ${HYPERLOCAL_ESTIMATED_MINS:45}
+      max-radius-km: ${HYPERLOCAL_MAX_RADIUS_KM:15.0}
+    standard:
+      charge: ${STANDARD_DELIVERY_CHARGE:0}
+      estimated-days: ${STANDARD_ESTIMATED_DAYS:4}
+
+google:
+  maps:
+    api-key: ${GOOGLE_MAPS_API_KEY:mock-key}

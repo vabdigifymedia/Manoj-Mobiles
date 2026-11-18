@@ -124,6 +124,17 @@ public class AuthService {
      * Send OTP to an email address.
      * [TEMPORARY - PINE LABS APPROVAL]
      */
+    /**
+     * Check if customer email is already registered.
+     * [TEMPORARY - PINE LABS APPROVAL]
+     */
+    public boolean checkEmailExists(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        return userRepository.findByEmail(email.trim().toLowerCase()).isPresent();
+    }
+
     public String sendEmailOtp(String email) {
         return emailOtpService.generateAndSendOtp(email);
     }

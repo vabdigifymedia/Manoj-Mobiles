@@ -18,4 +18,11 @@ public class ShipmentResponseDTO {
     private LocalDateTime assignedAt;
     private LocalDateTime pickedAt;
     private LocalDateTime deliveredAt;
+    private String routePolyline;
+    private Integer routeDistanceMetres;
+    private Integer routeDurationSeconds;
+    private Double progress;
+    private Integer remainingMetres;
+    private Integer remainingSeconds;
+    private LocalDateTime eta;
 }

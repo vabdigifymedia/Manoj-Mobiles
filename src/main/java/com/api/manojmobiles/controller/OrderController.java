@@ -1,9 +1,14 @@
 package com.api.manojmobiles.controller;
 
 import com.api.manojmobiles.dto.ApiResponse;
+import com.api.manojmobiles.dto.cart.CartResponseDTO;
+import com.api.manojmobiles.dto.delivery.DeliveryOptionsResponseDTO;
+import com.api.manojmobiles.dto.delivery.OrderTrackingSnapshotDTO;
 import com.api.manojmobiles.dto.order.OrderResponseDTO;
 import com.api.manojmobiles.dto.order.PlaceOrderRequestDTO;
 import com.api.manojmobiles.dto.order.LiveLocationResponseDTO;
+import com.api.manojmobiles.service.CartService;
+import com.api.manojmobiles.service.DeliveryService;
 import com.api.manojmobiles.service.LiveLocationService;
 import com.api.manojmobiles.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.UUID;
 
@@ -31,6 +37,8 @@ public class OrderController {
 
     private final OrderService orderService;
     private final LiveLocationService liveLocationService;
+    private final DeliveryService deliveryService;
+    private final CartService cartService;
 
     @PostMapping
     @Operation(summary = "Place a new order")
@@ -78,6 +86,31 @@ public class OrderController {
             @Valid @RequestBody com.api.manojmobiles.dto.order.CancelOrderRequestDTO request) {
         OrderResponseDTO cancelledOrder = orderService.cancelOrder(principal.getName(), orderId, request);
         return ResponseEntity.ok(ApiResponse.success("Order cancelled successfully", cancelledOrder));
+    }
+
+    @GetMapping("/delivery-options")
+    @Operation(summary = "Get available delivery options (Hyperlocal vs Standard) for a saved address")
+    public ResponseEntity<ApiResponse<DeliveryOptionsResponseDTO>> getDeliveryOptions(
+            Principal principal,
+            @RequestParam UUID addressId,
+            @RequestParam(required = false) BigDecimal cartTotal) {
+        BigDecimal effectiveTotal = cartTotal;
+        if (effectiveTotal == null) {
+            CartResponseDTO cart = cartService.getCart(principal.getName(), null);
+            effectiveTotal = cart != null && cart.getCartTotal() != null ? cart.getCartTotal() : BigDecimal.ZERO;
+        }
+        DeliveryOptionsResponseDTO options = deliveryService.getDeliveryOptionsForAddress(
+                principal.getName(), addressId, effectiveTotal);
+        return ResponseEntity.ok(ApiResponse.success("Delivery options fetched successfully", options));
+    }
+
+    @GetMapping("/{orderId}/tracking")
+    @Operation(summary = "Get complete tracking snapshot (store, destination, route polyline, agent, live location, ETA, progress, timeline)")
+    public ResponseEntity<ApiResponse<OrderTrackingSnapshotDTO>> getOrderTracking(
+            Principal principal,
+            @PathVariable UUID orderId) {
+        OrderTrackingSnapshotDTO snapshot = deliveryService.getOrderTrackingSnapshot(principal.getName(), orderId);
+        return ResponseEntity.ok(ApiResponse.success("Order tracking snapshot fetched successfully", snapshot));
     }
 
     @GetMapping("/{orderId}/live-location")

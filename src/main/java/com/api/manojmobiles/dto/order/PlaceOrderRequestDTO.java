@@ -1,5 +1,6 @@
 package com.api.manojmobiles.dto.order;
 
+import com.api.manojmobiles.entity.enums.DeliveryType;
 import com.api.manojmobiles.entity.enums.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,9 @@ public class PlaceOrderRequestDTO {
 
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
+
+    /** Optional: HYPERLOCAL or STANDARD. When null, backend auto-picks based on pincode serviceability. */
+    private DeliveryType deliveryType;
 
     private String couponCode;
 

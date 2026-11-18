@@ -1,8 +1,10 @@
 package com.api.manojmobiles.controller.admin_api;
 
 import com.api.manojmobiles.dto.ApiResponse;
+import com.api.manojmobiles.dto.delivery.OrderTrackingSnapshotDTO;
 import com.api.manojmobiles.dto.order.OrderResponseDTO;
 import com.api.manojmobiles.dto.order.UpdateOrderStatusRequestDTO;
+import com.api.manojmobiles.service.DeliveryService;
 import com.api.manojmobiles.service.OrderService;
 import com.api.manojmobiles.service.LiveLocationService;
 import com.api.manojmobiles.dto.order.LiveLocationResponseDTO;
@@ -30,6 +32,7 @@ public class AdminOrderController {
 
     private final OrderService orderService;
     private final LiveLocationService liveLocationService;
+    private final DeliveryService deliveryService;
 
     @GetMapping
     @Operation(summary = "Get all orders with pagination")
@@ -65,6 +68,13 @@ public class AdminOrderController {
             @Valid @RequestBody com.api.manojmobiles.dto.order.AssignDeliveryPartnerRequestDTO request) {
         OrderResponseDTO updatedOrder = orderService.assignDeliveryPartner(orderId, request);
         return ResponseEntity.ok(ApiResponse.success("Delivery partner assigned successfully.", updatedOrder));
+    }
+
+    @GetMapping("/{orderId}/tracking")
+    @Operation(summary = "Get complete tracking snapshot for an order (Admin)")
+    public ResponseEntity<ApiResponse<OrderTrackingSnapshotDTO>> getOrderTracking(@PathVariable UUID orderId) {
+        OrderTrackingSnapshotDTO snapshot = deliveryService.getOrderTrackingSnapshotForAdmin(orderId);
+        return ResponseEntity.ok(ApiResponse.success("Order tracking snapshot fetched successfully", snapshot));
     }
 
     @GetMapping("/{orderId}/live-location")
