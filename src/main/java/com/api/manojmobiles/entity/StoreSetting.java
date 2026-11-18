@@ -50,6 +50,20 @@ public class StoreSetting {
     @Builder.Default
     private String expressDeliveryText = "Get delivery within 2 hours in selected pin codes";
 
+    @Builder.Default
+    private Boolean hyperlocalEnabled = true;
+    @Builder.Default
+    private BigDecimal hyperlocalDeliveryCharge = BigDecimal.valueOf(49.00);
+    @Builder.Default
+    private Integer hyperlocalEstimatedMins = 45;
+    @Builder.Default
+    private Double hyperlocalMaxRadiusKm = 15.0;
+
+    @Builder.Default
+    private BigDecimal standardDeliveryCharge = BigDecimal.ZERO;
+    @Builder.Default
+    private Integer standardEstimatedDays = 4;
+
     private Double storeLat;
     private Double storeLng;
 

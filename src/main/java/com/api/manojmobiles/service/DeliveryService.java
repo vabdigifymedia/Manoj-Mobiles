@@ -1,6 +1,5 @@
 package com.api.manojmobiles.service;
 
-import com.api.manojmobiles.config.StoreDeliveryProperties;
 import com.api.manojmobiles.dto.delivery.*;
 import com.api.manojmobiles.dto.order.LiveLocationResponseDTO;
 import com.api.manojmobiles.entity.*;
@@ -37,6 +36,14 @@ public class DeliveryService {
             OrderStatus.SHIPPED, OrderStatus.OUT_FOR_DELIVERY
     );
     private static final double MIN_HEADING_MOVE_METRES = 2.0;
+    private static final double DEFAULT_STORE_LAT = 28.5355;
+    private static final double DEFAULT_STORE_LNG = 77.3910;
+    private static final BigDecimal DEFAULT_HYPERLOCAL_CHARGE = BigDecimal.valueOf(49);
+    private static final BigDecimal DEFAULT_FREE_DELIVERY_THRESHOLD = BigDecimal.valueOf(999);
+    private static final int DEFAULT_HYPERLOCAL_MINS = 45;
+    private static final double DEFAULT_HYPERLOCAL_RADIUS_KM = 15.0;
+    private static final BigDecimal DEFAULT_STANDARD_CHARGE = BigDecimal.ZERO;
+    private static final int DEFAULT_STANDARD_DAYS = 4;
 
     private final DeliveryAgentRepository deliveryAgentRepository;
     private final ShipmentRepository shipmentRepository;
@@ -51,7 +58,7 @@ public class DeliveryService {
     private final LiveLocationService liveLocationService;
     private final GoogleMapsService googleMapsService;
     private final NotificationService notificationService;
-    private final StoreDeliveryProperties storeProps;
+    private final StoreSettingService storeSettingService;
 
     @Transactional
     public DeliveryAgentResponseDTO createDeliveryAgent(DeliveryAgentRequestDTO request) {
@@ -184,8 +191,9 @@ public class DeliveryService {
             throw new BadRequestException("Auto-dispatch is only supported for HYPERLOCAL orders");
         }
 
-        Double storeLat = storeProps.getStore().getLat();
-        Double storeLng = storeProps.getStore().getLng();
+        StoreSetting settings = storeSettingService.getCurrentSettings();
+        Double storeLat = resolveStoreLat(settings);
+        Double storeLng = resolveStoreLng(settings);
 
         List<DeliveryAgent> candidates = deliveryAgentRepository.findByIsAvailableTrue().stream()
                 .filter(a -> shipmentRepository.countByAgentIdAndCurrentStatusIn(a.getId(), ACTIVE_SHIPMENT_STATUSES) == 0)
@@ -218,8 +226,9 @@ public class DeliveryService {
             throw new BadRequestException("A shipment is already assigned to this order");
         }
 
-        Double storeLat = storeProps.getStore().getLat();
-        Double storeLng = storeProps.getStore().getLng();
+        StoreSetting settings = storeSettingService.getCurrentSettings();
+        Double storeLat = resolveStoreLat(settings);
+        Double storeLng = resolveStoreLng(settings);
         Double destLat = resolveDestLat(order);
         Double destLng = resolveDestLng(order);
 
@@ -370,8 +379,9 @@ public class DeliveryService {
 
             // Ensure route polyline is computed from pickup location if missing
             if (shipment.getRoutePolyline() == null || shipment.getRoutePolyline().isBlank()) {
-                Double originLat = agent.getCurrentLat() != null ? agent.getCurrentLat() : storeProps.getStore().getLat();
-                Double originLng = agent.getCurrentLng() != null ? agent.getCurrentLng() : storeProps.getStore().getLng();
+                StoreSetting settings = storeSettingService.getCurrentSettings();
+                Double originLat = agent.getCurrentLat() != null ? agent.getCurrentLat() : resolveStoreLat(settings);
+                Double originLng = agent.getCurrentLng() != null ? agent.getCurrentLng() : resolveStoreLng(settings);
                 RouteInfoDTO route = googleMapsService.getRoute(originLat, originLng, resolveDestLat(order), resolveDestLng(order));
                 shipment.setRoutePolyline(route.getEncodedPolyline());
                 shipment.setRouteDistanceMetres(route.getDistanceMetres());
@@ -475,8 +485,9 @@ public class DeliveryService {
 
         // Ensure polyline exists
         if (shipment.getRoutePolyline() == null || shipment.getRoutePolyline().isBlank()) {
+            StoreSetting settings = storeSettingService.getCurrentSettings();
             RouteInfoDTO route = googleMapsService.getRoute(
-                    storeProps.getStore().getLat(), storeProps.getStore().getLng(),
+                    resolveStoreLat(settings), resolveStoreLng(settings),
                     resolveDestLat(order), resolveDestLng(order));
             shipment.setRoutePolyline(route.getEncodedPolyline());
             shipment.setRouteDistanceMetres(route.getDistanceMetres());
@@ -643,8 +654,9 @@ public class DeliveryService {
             Double destLng = resolveDestLng(order);
             if (destLat != null && destLng != null) {
                 remainingMetres = GeoUtils.haversineMetres(lat, lng, destLat, destLng);
-                Double storeLat = storeProps.getStore().getLat();
-                Double storeLng = storeProps.getStore().getLng();
+                StoreSetting settings = storeSettingService.getCurrentSettings();
+                Double storeLat = resolveStoreLat(settings);
+                Double storeLng = resolveStoreLng(settings);
                 double totalDist = GeoUtils.haversineMetres(storeLat, storeLng, destLat, destLng);
                 if (totalDist > 0) {
                     progress = Math.min(1.0, Math.max(0.0, 1.0 - (remainingMetres / totalDist)));
@@ -726,10 +738,11 @@ public class DeliveryService {
         Optional<Shipment> shipmentOpt = shipmentRepository.findByOrderId(order.getId());
         Shipment shipment = shipmentOpt.orElse(null);
 
+        StoreSetting settings = storeSettingService.getCurrentSettings();
         Double storeLat = shipment != null && shipment.getStoreLat() != null
-                ? shipment.getStoreLat() : storeProps.getStore().getLat();
+                ? shipment.getStoreLat() : resolveStoreLat(settings);
         Double storeLng = shipment != null && shipment.getStoreLng() != null
-                ? shipment.getStoreLng() : storeProps.getStore().getLng();
+                ? shipment.getStoreLng() : resolveStoreLng(settings);
         Double destLat = resolveDestLat(order);
         Double destLng = resolveDestLng(order);
 
@@ -850,8 +863,8 @@ public class DeliveryService {
                 .store(OrderTrackingSnapshotDTO.GeoPointDTO.builder()
                         .lat(storeLat)
                         .lng(storeLng)
-                        .label(storeProps.getStore().getName())
-                        .address(storeProps.getStore().getAddress())
+                        .label(settings.getStoreName() != null ? settings.getStoreName() : "Manoj Mobiles")
+                        .address(settings.getStoreAddress())
                         .build())
                 .destination(OrderTrackingSnapshotDTO.GeoPointDTO.builder()
                         .lat(destLat)
@@ -885,6 +898,10 @@ public class DeliveryService {
      */
     @Transactional(readOnly = true)
     public DeliveryOptionsResponseDTO getDeliveryOptions(String pincode, Double lat, Double lng, BigDecimal cartTotal) {
+        StoreSetting settings = storeSettingService.getCurrentSettings();
+        Double storeLat = resolveStoreLat(settings);
+        Double storeLng = resolveStoreLng(settings);
+
         Optional<ServiceablePincode> pinOpt = pincode != null
                 ? pincodeRepository.findByPincode(pincode.trim())
                 : Optional.empty();
@@ -895,17 +912,19 @@ public class DeliveryService {
 
         Double distanceKm = null;
         if (lat != null && lng != null) {
-            double metres = GeoUtils.haversineMetres(
-                    storeProps.getStore().getLat(), storeProps.getStore().getLng(), lat, lng);
+            double metres = GeoUtils.haversineMetres(storeLat, storeLng, lat, lng);
             distanceKm = BigDecimal.valueOf(metres / 1000.0).setScale(2, RoundingMode.HALF_UP).doubleValue();
         }
 
-        double maxRadiusKm = storeProps.getDelivery().getHyperlocal().getMaxRadiusKm();
+        boolean hyperlocalEnabled = resolveHyperlocalEnabled(settings);
+        double maxRadiusKm = resolveHyperlocalMaxRadiusKm(settings);
         boolean withinRadius = distanceKm == null || distanceKm <= maxRadiusKm;
-        boolean hyperlocalAvailable = activePincode && withinRadius;
+        boolean hyperlocalAvailable = hyperlocalEnabled && activePincode && withinRadius;
 
         String hyperlocalUnavailableReason = null;
-        if (!activePincode) {
+        if (!hyperlocalEnabled) {
+            hyperlocalUnavailableReason = "Hyperlocal express delivery is currently paused";
+        } else if (!activePincode) {
             hyperlocalUnavailableReason = "Hyperlocal express delivery is not available for pincode " + pincode;
         } else if (!withinRadius) {
             hyperlocalUnavailableReason = String.format(
@@ -916,11 +935,10 @@ public class DeliveryService {
         BigDecimal hyperlocalCharge = computeDeliveryCharge(DeliveryType.HYPERLOCAL, effectiveTotal);
         BigDecimal standardCharge = computeDeliveryCharge(DeliveryType.STANDARD, effectiveTotal);
 
-        int hyperlocalMins = storeProps.getDelivery().getHyperlocal().getEstimatedMins();
+        int hyperlocalMins = resolveHyperlocalEstimatedMins(settings);
         LocalDateTime hyperlocalEta = LocalDateTime.now().plusMinutes(hyperlocalMins);
         if (hyperlocalAvailable && lat != null && lng != null) {
-            RouteInfoDTO route = googleMapsService.getRoute(
-                    storeProps.getStore().getLat(), storeProps.getStore().getLng(), lat, lng);
+            RouteInfoDTO route = googleMapsService.getRoute(storeLat, storeLng, lat, lng);
             hyperlocalMins = Math.max(15, (int) Math.ceil(route.getDurationSeconds() / 60.0));
             hyperlocalEta = route.getEta();
         }
@@ -928,7 +946,7 @@ public class DeliveryService {
         int standardDays = pinOpt.isPresent() && pinOpt.get().getEstimatedDeliveryDays() != null
                 && pinOpt.get().getEstimatedDeliveryDays() > 1
                 ? pinOpt.get().getEstimatedDeliveryDays()
-                : storeProps.getDelivery().getStandard().getEstimatedDays();
+                : resolveStandardEstimatedDays(settings);
 
         boolean codAvailable = !pinOpt.isPresent() || Boolean.TRUE.equals(pinOpt.get().getCodAvailable());
 
@@ -984,17 +1002,22 @@ public class DeliveryService {
     }
 
     public BigDecimal computeDeliveryCharge(DeliveryType type, BigDecimal orderSubTotal) {
-        if (type == DeliveryType.HYPERLOCAL) {
-            BigDecimal freeAbove = storeProps.getDelivery().getHyperlocal().getFreeAbove();
-            if (freeAbove != null && orderSubTotal != null && orderSubTotal.compareTo(freeAbove) >= 0) {
-                return BigDecimal.ZERO;
-            }
-            return storeProps.getDelivery().getHyperlocal().getCharge();
+        StoreSetting settings = storeSettingService.getCurrentSettings();
+        BigDecimal freeAbove = resolveFreeDeliveryThreshold(settings);
+        if (freeAbove != null && orderSubTotal != null && orderSubTotal.compareTo(freeAbove) >= 0) {
+            return BigDecimal.ZERO;
         }
-        return storeProps.getDelivery().getStandard().getCharge();
+        if (type == DeliveryType.HYPERLOCAL) {
+            return resolveHyperlocalCharge(settings);
+        }
+        return resolveStandardCharge(settings);
     }
 
     public boolean isHyperlocalEligible(String pincode, Double lat, Double lng) {
+        StoreSetting settings = storeSettingService.getCurrentSettings();
+        if (!resolveHyperlocalEnabled(settings)) {
+            return false;
+        }
         Optional<ServiceablePincode> pinOpt = pincode != null
                 ? pincodeRepository.findByPincode(pincode.trim())
                 : Optional.empty();
@@ -1006,10 +1029,58 @@ public class DeliveryService {
         }
         if (lat != null && lng != null) {
             double distKm = GeoUtils.haversineMetres(
-                    storeProps.getStore().getLat(), storeProps.getStore().getLng(), lat, lng) / 1000.0;
-            return distKm <= storeProps.getDelivery().getHyperlocal().getMaxRadiusKm();
+                    resolveStoreLat(settings), resolveStoreLng(settings), lat, lng) / 1000.0;
+            return distKm <= resolveHyperlocalMaxRadiusKm(settings);
         }
         return true;
+    }
+
+    public Double resolveStoreLat(StoreSetting settings) {
+        return settings != null && settings.getStoreLat() != null ? settings.getStoreLat() : DEFAULT_STORE_LAT;
+    }
+
+    public Double resolveStoreLng(StoreSetting settings) {
+        return settings != null && settings.getStoreLng() != null ? settings.getStoreLng() : DEFAULT_STORE_LNG;
+    }
+
+    public int resolveStandardEstimatedDays(StoreSetting settings) {
+        return settings != null && settings.getStandardEstimatedDays() != null && settings.getStandardEstimatedDays() > 0
+                ? settings.getStandardEstimatedDays()
+                : DEFAULT_STANDARD_DAYS;
+    }
+
+    private boolean resolveHyperlocalEnabled(StoreSetting settings) {
+        return settings == null || settings.getHyperlocalEnabled() == null || Boolean.TRUE.equals(settings.getHyperlocalEnabled());
+    }
+
+    private BigDecimal resolveHyperlocalCharge(StoreSetting settings) {
+        return settings != null && settings.getHyperlocalDeliveryCharge() != null
+                ? settings.getHyperlocalDeliveryCharge()
+                : DEFAULT_HYPERLOCAL_CHARGE;
+    }
+
+    private BigDecimal resolveFreeDeliveryThreshold(StoreSetting settings) {
+        return settings != null && settings.getFreeDeliveryThreshold() != null
+                ? settings.getFreeDeliveryThreshold()
+                : DEFAULT_FREE_DELIVERY_THRESHOLD;
+    }
+
+    private int resolveHyperlocalEstimatedMins(StoreSetting settings) {
+        return settings != null && settings.getHyperlocalEstimatedMins() != null && settings.getHyperlocalEstimatedMins() > 0
+                ? settings.getHyperlocalEstimatedMins()
+                : DEFAULT_HYPERLOCAL_MINS;
+    }
+
+    private double resolveHyperlocalMaxRadiusKm(StoreSetting settings) {
+        return settings != null && settings.getHyperlocalMaxRadiusKm() != null && settings.getHyperlocalMaxRadiusKm() > 0
+                ? settings.getHyperlocalMaxRadiusKm()
+                : DEFAULT_HYPERLOCAL_RADIUS_KM;
+    }
+
+    private BigDecimal resolveStandardCharge(StoreSetting settings) {
+        return settings != null && settings.getStandardDeliveryCharge() != null
+                ? settings.getStandardDeliveryCharge()
+                : DEFAULT_STANDARD_CHARGE;
     }
 
     @Transactional(readOnly = true)

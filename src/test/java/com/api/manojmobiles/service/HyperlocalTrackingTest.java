@@ -1,6 +1,5 @@
 package com.api.manojmobiles.service;
 
-import com.api.manojmobiles.config.StoreDeliveryProperties;
 import com.api.manojmobiles.dto.delivery.*;
 import com.api.manojmobiles.dto.order.LiveLocationResponseDTO;
 import com.api.manojmobiles.entity.*;
@@ -43,15 +42,29 @@ class HyperlocalTrackingTest {
     @Mock private SimpMessagingTemplate messagingTemplate;
     @Mock private LiveLocationService liveLocationService;
     @Mock private NotificationService notificationService;
+    @Mock private StoreSettingService storeSettingService;
 
     private GoogleMapsService googleMapsService;
-    private StoreDeliveryProperties storeProps;
     private DeliveryService deliveryService;
 
     @BeforeEach
     void setUp() {
         googleMapsService = new GoogleMapsService();
-        storeProps = new StoreDeliveryProperties();
+        StoreSetting defaultSettings = StoreSetting.builder()
+                .storeName("Manoj Mobiles")
+                .storeAddress("Sector 18, Noida")
+                .storeLat(28.5355)
+                .storeLng(77.3910)
+                .freeDeliveryThreshold(BigDecimal.valueOf(999))
+                .hyperlocalEnabled(true)
+                .hyperlocalDeliveryCharge(BigDecimal.valueOf(49))
+                .hyperlocalEstimatedMins(45)
+                .hyperlocalMaxRadiusKm(15.0)
+                .standardDeliveryCharge(BigDecimal.ZERO)
+                .standardEstimatedDays(4)
+                .build();
+        lenient().when(storeSettingService.getCurrentSettings()).thenReturn(defaultSettings);
+
         deliveryService = new DeliveryService(
                 deliveryAgentRepository,
                 shipmentRepository,
@@ -66,7 +79,7 @@ class HyperlocalTrackingTest {
                 liveLocationService,
                 googleMapsService,
                 notificationService,
-                storeProps
+                storeSettingService
         );
     }
 

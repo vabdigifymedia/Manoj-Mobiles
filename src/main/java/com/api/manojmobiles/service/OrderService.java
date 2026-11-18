@@ -57,7 +57,7 @@ public class OrderService {
         private final DeliveryPartnerRepository deliveryPartnerRepository;
         private final GoogleMapsService googleMapsService;
         private final DeliveryService deliveryService;
-        private final com.api.manojmobiles.config.StoreDeliveryProperties storeProps;
+        private final StoreSettingService storeSettingService;
 
         @Transactional
         public OrderResponseDTO placeOrder(String username, PlaceOrderRequestDTO request) {
@@ -105,11 +105,12 @@ public class OrderService {
                                         : com.api.manojmobiles.entity.enums.DeliveryType.STANDARD;
                 }
 
+                StoreSetting storeSettings = storeSettingService.getCurrentSettings();
                 LocalDateTime expectedDelivery;
                 if (deliveryType == com.api.manojmobiles.entity.enums.DeliveryType.HYPERLOCAL) {
                         expectedDelivery = googleMapsService.calculateETA(
-                                        storeProps.getStore().getLat(),
-                                        storeProps.getStore().getLng(),
+                                        deliveryService.resolveStoreLat(storeSettings),
+                                        deliveryService.resolveStoreLng(storeSettings),
                                         address.getLat(),
                                         address.getLng());
                 } else {
@@ -117,7 +118,7 @@ public class OrderService {
                                         && localPincode.get().getEstimatedDeliveryDays() != null
                                         && localPincode.get().getEstimatedDeliveryDays() > 1
                                                         ? localPincode.get().getEstimatedDeliveryDays()
-                                                        : storeProps.getDelivery().getStandard().getEstimatedDays();
+                                                        : deliveryService.resolveStandardEstimatedDays(storeSettings);
                         expectedDelivery = LocalDateTime.now().plusDays(standardDays);
                 }
 
@@ -282,8 +283,9 @@ public class OrderService {
                 order.setDeliveryPartner(partner);
 
                 // Calculate ETA & Route
-                Double storeLat = storeProps.getStore().getLat();
-                Double storeLng = storeProps.getStore().getLng();
+                StoreSetting storeSettings = storeSettingService.getCurrentSettings();
+                Double storeLat = deliveryService.resolveStoreLat(storeSettings);
+                Double storeLng = deliveryService.resolveStoreLng(storeSettings);
                 com.api.manojmobiles.dto.delivery.RouteInfoDTO route = googleMapsService.getRoute(
                                 storeLat, storeLng, order.getShippingLat(), order.getShippingLng());
                 LocalDateTime eta = route.getEta();

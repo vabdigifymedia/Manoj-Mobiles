@@ -19,12 +19,14 @@ public class StoreSettingServiceImpl implements StoreSettingService {
     @Override
     @Transactional(readOnly = true)
     public StoreSettingResponseDTO getStoreSettings() {
-        StoreSetting setting = storeSettingRepository.findById(DEFAULT_CONFIG_ID)
-                .orElseGet(() -> {
-                    StoreSetting defaultSetting = new StoreSetting();
-                    return storeSettingRepository.save(defaultSetting);
-                });
-        return mapToDTO(setting);
+        return mapToDTO(getCurrentSettings());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public StoreSetting getCurrentSettings() {
+        return storeSettingRepository.findById(DEFAULT_CONFIG_ID)
+                .orElseGet(StoreSetting::new);
     }
 
     @Override
@@ -44,8 +46,30 @@ public class StoreSettingServiceImpl implements StoreSettingService {
         setting.setStoreAddress(dto.getStoreAddress());
         setting.setStoreTimings(dto.getStoreTimings());
         setting.setGoogleMapsUrl(dto.getGoogleMapsUrl());
-        setting.setFreeDeliveryThreshold(dto.getFreeDeliveryThreshold());
-        setting.setExpressDeliveryText(dto.getExpressDeliveryText());
+        if (dto.getFreeDeliveryThreshold() != null) {
+            setting.setFreeDeliveryThreshold(dto.getFreeDeliveryThreshold());
+        }
+        if (dto.getExpressDeliveryText() != null) {
+            setting.setExpressDeliveryText(dto.getExpressDeliveryText());
+        }
+        if (dto.getHyperlocalEnabled() != null) {
+            setting.setHyperlocalEnabled(dto.getHyperlocalEnabled());
+        }
+        if (dto.getHyperlocalDeliveryCharge() != null) {
+            setting.setHyperlocalDeliveryCharge(dto.getHyperlocalDeliveryCharge());
+        }
+        if (dto.getHyperlocalEstimatedMins() != null) {
+            setting.setHyperlocalEstimatedMins(dto.getHyperlocalEstimatedMins());
+        }
+        if (dto.getHyperlocalMaxRadiusKm() != null) {
+            setting.setHyperlocalMaxRadiusKm(dto.getHyperlocalMaxRadiusKm());
+        }
+        if (dto.getStandardDeliveryCharge() != null) {
+            setting.setStandardDeliveryCharge(dto.getStandardDeliveryCharge());
+        }
+        if (dto.getStandardEstimatedDays() != null) {
+            setting.setStandardEstimatedDays(dto.getStandardEstimatedDays());
+        }
         setting.setStoreLat(dto.getStoreLat());
         setting.setStoreLng(dto.getStoreLng());
 
@@ -68,6 +92,12 @@ public class StoreSettingServiceImpl implements StoreSettingService {
         dto.setGoogleMapsUrl(s.getGoogleMapsUrl());
         dto.setFreeDeliveryThreshold(s.getFreeDeliveryThreshold());
         dto.setExpressDeliveryText(s.getExpressDeliveryText());
+        dto.setHyperlocalEnabled(s.getHyperlocalEnabled() != null ? s.getHyperlocalEnabled() : true);
+        dto.setHyperlocalDeliveryCharge(s.getHyperlocalDeliveryCharge() != null ? s.getHyperlocalDeliveryCharge() : java.math.BigDecimal.valueOf(49));
+        dto.setHyperlocalEstimatedMins(s.getHyperlocalEstimatedMins() != null ? s.getHyperlocalEstimatedMins() : 45);
+        dto.setHyperlocalMaxRadiusKm(s.getHyperlocalMaxRadiusKm() != null ? s.getHyperlocalMaxRadiusKm() : 15.0);
+        dto.setStandardDeliveryCharge(s.getStandardDeliveryCharge() != null ? s.getStandardDeliveryCharge() : java.math.BigDecimal.ZERO);
+        dto.setStandardEstimatedDays(s.getStandardEstimatedDays() != null ? s.getStandardEstimatedDays() : 4);
         dto.setStoreLat(s.getStoreLat());
         dto.setStoreLng(s.getStoreLng());
         dto.setUpdatedAt(s.getUpdatedAt());
