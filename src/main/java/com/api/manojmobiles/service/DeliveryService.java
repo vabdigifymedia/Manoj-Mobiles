@@ -1220,10 +1220,47 @@ public class DeliveryService {
     }
 
     private ShipmentResponseDTO mapToShipmentDTO(Shipment shipment) {
+        Order order = shipment.getOrder();
+        StoreSetting settings = storeSettingService.getCurrentSettings();
+
+        String custName = order != null && order.getUser() != null ? order.getUser().getName() : null;
+        String custPhone = order != null && order.getUser() != null ? order.getUser().getPhone() : null;
+        String addressStr = null;
+        String pincode = null;
+        if (order != null && order.getAddress() != null) {
+            Address addr = order.getAddress();
+            StringBuilder sb = new StringBuilder();
+            if (addr.getAddressLine() != null && !addr.getAddressLine().isBlank()) sb.append(addr.getAddressLine());
+            if (addr.getCity() != null && !addr.getCity().isBlank()) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(addr.getCity());
+            }
+            if (addr.getState() != null && !addr.getState().isBlank()) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(addr.getState());
+            }
+            if (addr.getPincode() != null && !addr.getPincode().isBlank()) {
+                if (sb.length() > 0) sb.append(" - ");
+                sb.append(addr.getPincode());
+            }
+            addressStr = sb.toString();
+            pincode = addr.getPincode();
+        }
+
+        Double destLat = order != null ? resolveDestLat(order) : null;
+        Double destLng = order != null ? resolveDestLng(order) : null;
+
+        String payMethod = "PREPAID";
+        if (order != null && order.getPayment() != null && order.getPayment().getMethod() != null) {
+            payMethod = order.getPayment().getMethod().name();
+        }
+        java.math.BigDecimal totalAmt = order != null && order.getTotalAmount() != null ? order.getTotalAmount() : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal collectAmt = "COD".equalsIgnoreCase(payMethod) ? totalAmt : java.math.BigDecimal.ZERO;
+
         return ShipmentResponseDTO.builder()
                 .id(shipment.getId())
-                .orderId(shipment.getOrder().getId())
-                .orderNumber(shipment.getOrder().getOrderNumber())
+                .orderId(order != null ? order.getId() : null)
+                .orderNumber(order != null ? order.getOrderNumber() : null)
                 .agent(mapToAgentDTO(shipment.getAgent()))
                 .currentStatus(shipment.getCurrentStatus())
                 .assignedAt(shipment.getAssignedAt())
@@ -1236,6 +1273,19 @@ public class DeliveryService {
                 .remainingMetres(shipment.getRemainingMetres())
                 .remainingSeconds(shipment.getRemainingSeconds())
                 .eta(shipment.getEta())
+                .customerName(custName)
+                .customerPhone(custPhone)
+                .deliveryAddress(addressStr)
+                .deliveryPincode(pincode)
+                .destinationLat(destLat)
+                .destinationLng(destLng)
+                .paymentMethod(payMethod)
+                .totalAmount(totalAmt)
+                .collectAmount(collectAmt)
+                .storeName(settings != null ? settings.getStoreName() : "Manoj Mobiles")
+                .storeAddress(settings != null ? settings.getStoreAddress() : null)
+                .storeLat(shipment.getStoreLat() != null ? shipment.getStoreLat() : (settings != null ? resolveStoreLat(settings) : null))
+                .storeLng(shipment.getStoreLng() != null ? shipment.getStoreLng() : (settings != null ? resolveStoreLng(settings) : null))
                 .build();
     }
 }
