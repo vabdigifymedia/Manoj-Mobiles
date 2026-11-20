@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws-delivery/**", "/ws-delivery-ws/**").permitAll()
                         .requestMatchers("/api/payment/webhook/**").permitAll()
                         .requestMatchers("/api/user/cart", "/api/user/cart/items", "/api/user/cart/items/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {

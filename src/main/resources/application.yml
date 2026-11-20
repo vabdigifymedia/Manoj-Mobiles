@@ -1,5 +1,6 @@
 server:
   port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework
 
 spring:
   ai:
@@ -101,3 +102,13 @@ app:
 google:
   maps:
     api-key: ${GOOGLE_MAPS_API_KEY:mock-key}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    try-it-out-enabled: true
+    display-request-duration: true
