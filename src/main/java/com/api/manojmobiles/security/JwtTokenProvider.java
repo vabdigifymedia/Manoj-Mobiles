@@ -20,7 +20,7 @@ public class JwtTokenProvider {
     private String jwtSecret;
 
     @Value("${app.jwt.expiration-in-ms:604800000}")
-    private int jwtExpirationInMs;
+    private long jwtExpirationInMs;
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
