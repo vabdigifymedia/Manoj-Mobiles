@@ -62,8 +62,8 @@ public class AddressService {
                 .city(request.getCity())
                 .state(request.getState())
                 .pincode(request.getPincode())
-                .lat(request.getLat())
-                .lng(request.getLng())
+                .lat(request.getEffectiveLat())
+                .lng(request.getEffectiveLng())
                 .isDefault(isDefault)
                 .build();
 
@@ -87,8 +87,8 @@ public class AddressService {
         address.setCity(request.getCity());
         address.setState(request.getState());
         address.setPincode(request.getPincode());
-        address.setLat(request.getLat());
-        address.setLng(request.getLng());
+        address.setLat(request.getEffectiveLat());
+        address.setLng(request.getEffectiveLng());
 
         // If it's the only address, it must remain default
         List<Address> existingAddresses = addressRepository.findByUserId(user.getId());
@@ -143,6 +143,8 @@ public class AddressService {
     }
 
     private AddressResponseDTO mapToDTO(Address address) {
+        Double effectiveLat = address.getLat() != null ? address.getLat() : address.getLatitude();
+        Double effectiveLng = address.getLng() != null ? address.getLng() : address.getLongitude();
         return AddressResponseDTO.builder()
                 .id(address.getId())
                 .label(address.getLabel())
@@ -150,6 +152,10 @@ public class AddressService {
                 .city(address.getCity())
                 .state(address.getState())
                 .pincode(address.getPincode())
+                .lat(effectiveLat)
+                .lng(effectiveLng)
+                .latitude(effectiveLat)
+                .longitude(effectiveLng)
                 .isDefault(address.getIsDefault())
                 .build();
     }

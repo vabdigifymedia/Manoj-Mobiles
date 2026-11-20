@@ -42,7 +42,35 @@ public class Address {
     @Pattern(regexp = "^[0-9]{6}$")
     private String pincode;
 
+    @Column(name = "latitude")
     private Double lat;
+
+    @Column(name = "longitude")
     private Double lng;
+
     private Boolean isDefault;
+
+    public Double getLatitude() {
+        return lat;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.lat = latitude;
+    }
+
+    public Double getLongitude() {
+        return lng;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.lng = longitude;
+    }
+
+    public Double getEffectiveLat() {
+        return lat;
+    }
+
+    public Double getEffectiveLng() {
+        return lng;
+    }
 }

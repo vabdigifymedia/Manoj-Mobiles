@@ -129,6 +129,9 @@ public class OrderService {
                         expectedDelivery = LocalDateTime.now().plusDays(standardDays);
                 }
 
+                Double orderLat = address.getLat() != null ? address.getLat() : address.getLatitude();
+                Double orderLng = address.getLng() != null ? address.getLng() : address.getLongitude();
+
                 // 4. Create Order Object
                 Order order = Order.builder()
                                 .user(user)
@@ -138,13 +141,15 @@ public class OrderService {
                                 .updatedAt(LocalDateTime.now())
                                 .deliveryType(deliveryType)
                                 .expectedDeliveryDate(expectedDelivery)
-                                .shippingLat(address.getLat())
-                                .shippingLng(address.getLng())
+                                .shippingLat(orderLat)
+                                .shippingLng(orderLng)
                                 .deliveryCharge(BigDecimal.ZERO) // Free Delivery Rule
                                 .discountAmount(BigDecimal.ZERO) // Coupon out of scope
                                 .totalAmount(BigDecimal.ZERO)
                                 .gstAmount(BigDecimal.ZERO)
                                 .build();
+                order.setDestinationLat(orderLat);
+                order.setDestinationLng(orderLng);
 
                 // 5. Generate Order Number
                 order.setOrderNumber(generateOrderNumber());

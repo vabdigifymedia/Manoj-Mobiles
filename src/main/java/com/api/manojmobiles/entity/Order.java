@@ -68,8 +68,27 @@ public class Order {
 
     private LocalDateTime expectedDeliveryDate;
 
+    @Column(name = "shipping_lat")
     private Double shippingLat;
+
+    @Column(name = "shipping_lng")
     private Double shippingLng;
+
+    public Double getDestinationLat() {
+        return shippingLat;
+    }
+
+    public void setDestinationLat(Double destinationLat) {
+        this.shippingLat = destinationLat;
+    }
+
+    public Double getDestinationLng() {
+        return shippingLng;
+    }
+
+    public void setDestinationLng(Double destinationLng) {
+        this.shippingLng = destinationLng;
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delivery_partner_id")

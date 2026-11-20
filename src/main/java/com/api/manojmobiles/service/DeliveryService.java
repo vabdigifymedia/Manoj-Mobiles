@@ -1188,14 +1188,26 @@ public class DeliveryService {
         if (order.getShippingLat() != null) {
             return order.getShippingLat();
         }
-        return order.getAddress() != null ? order.getAddress().getLat() : null;
+        if (order.getDestinationLat() != null) {
+            return order.getDestinationLat();
+        }
+        if (order.getAddress() != null) {
+            return order.getAddress().getLat() != null ? order.getAddress().getLat() : order.getAddress().getLatitude();
+        }
+        return null;
     }
 
     private Double resolveDestLng(Order order) {
         if (order.getShippingLng() != null) {
             return order.getShippingLng();
         }
-        return order.getAddress() != null ? order.getAddress().getLng() : null;
+        if (order.getDestinationLng() != null) {
+            return order.getDestinationLng();
+        }
+        if (order.getAddress() != null) {
+            return order.getAddress().getLng() != null ? order.getAddress().getLng() : order.getAddress().getLongitude();
+        }
+        return null;
     }
 
     private User getUserByEmailOrPhone(String identifier) {
